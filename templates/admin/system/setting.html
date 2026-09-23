@@ -1,0 +1,68 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+	  <main class="content-area">
+      <div class="row g-3">
+        <div class="col-lg-7">
+          <div class="panel">
+            <div class="panel-header"><h2>Admin account</h2></div>
+            <div class="panel-body p-4">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Display name</label>
+                <input type="text" class="form-control" value="Admin">
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Email</label>
+                <input type="email" class="form-control" value="admin@farmmarket.com">
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-semibold">New password</label>
+                  <input type="password" class="form-control" placeholder="••••••••">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-semibold">Confirm password</label>
+                  <input type="password" class="form-control" placeholder="••••••••">
+                </div>
+              </div>
+              <button type="button" class="btn btn-farm px-4">Save changes</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="panel">
+            <div class="panel-header"><h2>Notifications</h2></div>
+            <div class="panel-body p-4">
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="notifyProducts" checked>
+                <label class="form-check-label" for="notifyProducts">New product submissions</label>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="notifyOrders" checked>
+                <label class="form-check-label" for="notifyOrders">New customer orders</label>
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="notifyFarmers">
+                <label class="form-check-label" for="notifyFarmers">New farmer applications</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-3">
+            <div class="panel-header"><h2>Site information</h2></div>
+            <div class="panel-body p-4">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Site name</label>
+                <input type="text" class="form-control" value="FarmMarket">
+              </div>
+              <div class="mb-0">
+                <label class="form-label fw-semibold">Support email</label>
+                <input type="email" class="form-control" value="support@farmmarket.com">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products — ចម្ការខ្មែរ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <link href="/static/style/product.css" rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  {% include '/front/share/navbar.html' %}
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <div class="container position-relative">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0" style="background:none;padding:0;">
+          <li class="breadcrumb-item"><a href="{{ url_for('front_bp.homepage') }}">Home</a></li>
+          <li class="breadcrumb-item active">Products</li>
+        </ol>
+      </nav>
+      <h1>All Products</h1>
+      <p>Sourced fresh from 120+ verified Cambodian farms across 25 provinces.</p>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="container">
+      <div class="d-flex align-items-center gap-2 flex-wrap justify-content-between">
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="filter-pill active" data-filter="all">All Products</button>
+          <button class="filter-pill" data-filter="rice">Rice & Grains</button>
+          <button class="filter-pill" data-filter="fruit">Fruits</button>
+          <button class="filter-pill" data-filter="veg">Vegetables</button>
+          <button class="filter-pill" data-filter="spice">Spices</button>
+          <button class="filter-pill" data-filter="honey">Honey</button>
+          <button class="filter-pill" data-filter="beans">Beans</button>
+        </div>
+        <select class="sort-select" id="sortSelect">
+          <option value="default">Sort: Default</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS GRID -->
+  <section style="padding:3.5rem 0 5rem;">
+    <div class="container">
+      <div class="row g-4" id="productsGrid">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3 fade-up" data-cat="{{ product.name }}">
+          <div class="product-card">
+            <div class="product-thumb">
+              <a href="{{ url_for('front_bp.detail', product_id = product.id) }}">
+                <img src="{{ product.image }}" /></a>
+                <span class="badge-organic">{{ product.badge }}</span>
+            </div>
+            <div class="product-body">
+              <div class="product-origin">{{ product.origin }}</div>
+              <div class="product-name">{{ product.name}}</div>
+              <div class="product-unit">per {{ product.unit }}</div>
+              <div class="product-footer">
+                <span class="product-price" data-price="{{ product.price }}">${{ product.price }}</span>
+                <a href="{{ url_for('front_bp.cart_add', product_id=product.id) }}" class="btn-add text-decoration-none">+</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+      <!-- No results -->
+      <div id="noResults" class="text-center py-5 d-none">
+        <div style="font-size:3rem;margin-bottom:1rem;">🔍</div>
+        <h4 style="font-family:'Playfair Display',serif;color:var(--text-dark);">No products found</h4>
+        <p style="color:var(--text-light);">Try a different filter category.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  {% include '/front/share/footer.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/script/main.js"></script>
+  <script>
+    // Filter logic
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', function () {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+        const cards = document.querySelectorAll('#productsGrid [data-cat]');
+        let visible = 0;
+        cards.forEach(card => {
+          const show = filter === 'all' || card.dataset.cat === filter;
+          card.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        document.getElementById('noResults').classList.toggle('d-none', visible > 0);
+      });
+    });
+
+    // Sort logic
+    document.getElementById('sortSelect').addEventListener('change', function () {
+      const grid = document.getElementById('productsGrid');
+      const cards = [...grid.querySelectorAll('[data-cat]')];
+      cards.sort((a, b) => {
+        const pa = parseFloat(a.querySelector('[data-price]').dataset.price);
+        const pb = parseFloat(b.querySelector('[data-price]').dataset.price);
+        const na = a.querySelector('.product-name').textContent;
+        const nb = b.querySelector('.product-name').textContent;
+        if (this.value === 'price-asc') return pa - pb;
+        if (this.value === 'price-desc') return pb - pa;
+        if (this.value === 'name') return na.localeCompare(nb);
+        return 0;
+      });
+      cards.forEach(c => grid.appendChild(c));
+    });
+  </script>
+</body>
+
+</html>

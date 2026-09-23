@@ -1,0 +1,47 @@
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+        <img style="width: 95px; height: 50px" src="/static/images/logo.png">
+      <div class="name">ចម្ការខ្មែរ</div>
+      <label for="sidebar-toggle" class="sidebar-close-btn" title="Close menu">
+        <i class="bi bi-x-lg"></i>
+      </label>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-link {{ 'active' if module == 'dashboard' }}" href="{{ url_for('admin_bp.dashboard_page') }}">
+        <i class="bi bi-house-dash"></i> Dashboard
+      </a>
+
+      <div class="sidebar-section-label">Users</div>
+      <a class="nav-link {{ 'active' if module == 'user_farmer' }}" href="{{ url_for('admin_bp.user_farmer_page') }}">
+        <i class="bi bi-person-badge-fill"></i> Farmers
+      </a>
+      <a class="nav-link {{ 'active' if module == 'user_customer' }}" href="{{ url_for('admin_bp.user_customer_page') }}">
+        <i class="bi bi-people-fill"></i> Customers
+      </a>
+
+      <div class="sidebar-section-label">Catalog</div>
+      <a class="nav-link {{ 'active' if module == 'category' }}" href="{{ url_for('admin_bp.category_page') }}">
+        <i class="bi bi-tags-fill"></i> Categories
+      </a>
+      <a class="nav-link {{ 'active' if module == 'product' }}" href="{{ url_for('admin_bp.product_page') }}">
+        <i class="bi bi-basket-fill"></i> Products
+      </a>
+
+      <div class="sidebar-section-label">Sales</div>
+      <a class="nav-link {{ 'active' if module == 'order' }}" href="{{ url_for('admin_bp.order_page') }}">
+        <i class="bi bi-receipt"></i> Orders
+      </a>
+
+      <div class="sidebar-section-label">System</div>
+      <a class="nav-link {{ 'active' if module == 'setting' }}" href="{{ url_for('admin_bp.setting_page') }}">
+        <i class="bi bi-gear-fill"></i> Settings
+      </a>
+      <a class="nav-link" href="{{ url_for('admin_bp.admin_logout') }}">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">FarmMarket Admin v1.0</div>
+  </aside>

@@ -1,0 +1,48 @@
+{% extends 'admin/master.html' %}
+
+
+{% block content %}
+<main class="content-area">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>All customers {{ users | length }}</h2>
+    </div>
+    <div class="panel-body table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>Profile</th>
+            <th>Username</th>
+            <th>Contact</th>
+            <th>Location</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for customer in users %}
+                <tr>
+                    <td>
+                      <img src="{{ url_for('static', filename = 'uploads/thumb/' + customer.profile) if customer.profile else '/static/images/bean.jpg' }}" alt="{{ customer.customer_name}}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 1px solid #ccc;"
+                        onerror="this.style.display='none';">
+                    </td>
+                    <td>
+                      <span class="fw-semibold">{{ customer.customer_name}}</span>
+                    </td>
+                    <td>{{ customer.customer_email}}<br><span class="text-muted small">customer.phoneNumber</span></td>
+                    <td>Phnom Penh</td>
+                    <td>
+                        <span style="text-transform: uppercase">{{ customer.role }}</span>
+                    </td>
+                    <td class="action-icons text-nowrap">
+                      <a href="#" title="Update"><i class="bi bi-pencil-square"></i></a>
+                      <a href="#" class="text-danger" title="Remove"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+	<main class="content-area">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>All categories (4)</h2>
+        </div>
+        <div class="panel-body table-responsive">
+          <table class="table mb-0 align-middle">
+            <thead><tr><th>Category</th><th>Description</th><th>Products</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="fw-semibold">Vegetables</td>
+                <td class="text-muted">Fresh leafy greens and vegetables</td>
+                <td>12</td>
+                <td class="action-icons text-nowrap">
+                  <a href="#" class="text-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-semibold">Fruits</td>
+                <td class="text-muted">Seasonal farm fruits</td>
+                <td>9</td>
+                <td class="action-icons text-nowrap">
+                  <a href="#" class="text-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-semibold">Rice &amp; Grains</td>
+                <td class="text-muted">Rice, corn, and other grains</td>
+                <td>4</td>
+                <td class="action-icons text-nowrap">
+                  <a href="#" class="text-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-semibold">Herbs &amp; Spices</td>
+                <td class="text-muted">Fresh and dried herbs</td>
+                <td>3</td>
+                <td class="action-icons text-nowrap">
+                  <a href="#" class="text-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+{% endblock %}

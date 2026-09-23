@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apply as Farmer — ចម្ការខ្មែរ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <link href="/static/style/about.css" rel="stylesheet" />
+  <link href="/static/style/apply_farmer.css" rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  {% include '/front/share/navbar.html' %}
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <div class="container position-relative">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0" style="background:none;padding:0;">
+          <li class="breadcrumb-item"><a href="{{ url_for('front_bp.homepage') }}">Home</a></li>
+          <li class="breadcrumb-item active">Apply as Farmer</li>
+        </ol>
+      </nav>
+      <h1>Apply as Farmer</h1>
+      <p>Join ចម្ការខ្មែរ and start selling your harvest directly to customers.</p>
+    </div>
+  </div>
+
+  <!-- APPLY FORM -->
+  <section style="padding: 4rem 0;">
+    <div class="container">
+      <div class="apply-card">
+        <div class="apply-card-header">Farmer Application</div>
+
+        <form action="{{ url_for('front_bp.apply_farmer') }}" method="POST" enctype="multipart/form-data">
+          <div class="apply-card-body">
+
+            <label class="form-label fw-bold d-block">Profile photo</label>
+            <div class="photo-upload-wrap">
+              <label for="profilePhoto" class="photo-circle" id="photoCircle">
+                <i class="bi bi-camera-fill"></i>
+                <span>BROWSE</span>
+              </label>
+              <input type="file" id="profilePhoto" name="profile_photo" accept="image/*" hidden>
+              <p class="photo-hint">Click the circle to upload a profile picture</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Full name</label>
+              <input type="text" class="form-control farmer-input" name="full_name" placeholder="e.g. Chhay Sopheaktra" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Farm name</label>
+              <input type="text" class="form-control farmer-input" name="farm_name" placeholder="e.g. Pheaktra Rice Farm" required>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Email</label>
+                <input type="email" class="form-control farmer-input" name="email" placeholder="chhaysopheaktra@farm.com" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Phone</label>
+                <input type="tel" class="form-control farmer-input" name="phone" placeholder="012 345 678" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Location / Province</label>
+              <input type="text" class="form-control farmer-input" name="location" placeholder="e.g. Kompongcham" required>
+            </div>
+
+            <div class="alert-note mb-3">
+              <i class="bi bi-info-circle"></i>
+              Once your application is <strong>approved</strong>, you'll be able to post products. Products you submit still require separate approval.
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label fw-bold">Password</label>
+              <input type="password" class="form-control farmer-input" name="password" placeholder="Enter password" required minlength="8">
+            </div>
+
+          </div>
+
+          <div class="apply-card-footer">
+            <a href="{{ url_for('front_bp.our_farm_page') }}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-cta-green">Apply as Farmer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  {% include '/front/share/footer.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/script/main.js"></script>
+  <script>
+    // preview uploaded photo inside the circle
+    const photoInput = document.getElementById('profilePhoto');
+    const photoCircle = document.getElementById('photoCircle');
+    photoInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          photoCircle.innerHTML = `<img src="${e.target.result}" alt="Profile preview">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+
+</html>

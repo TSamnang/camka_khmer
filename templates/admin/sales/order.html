@@ -1,0 +1,29 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+	    <main class="content-area">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>All orders (4)</h2>
+        </div>
+        <div class="panel-body table-responsive">
+          <table class="table mb-0 align-middle">
+            <thead>
+              <tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fw-semibold">#104</td>
+                <td>Vong Piseth</td>
+                <td>5</td>
+                <td>$22.00</td>
+                <td>2026-07-04</td>
+                <td><span class="pill pill-pending">Pending</span></td>
+                <td class="action-icons"><a href="{{ url_for('admin_bp.order_detail_page') }}" title="View"><i class="bi bi-eye"></i></a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+{% endblock %}

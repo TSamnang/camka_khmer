@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ចម្ការខ្មែរ — Fresh From Cambodian Farms</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <link href="/static/style/homepage.css" rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  {% include '/front/share/navbar.html' %}
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-pattern"></div>
+    <div class="container position-relative">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="hero-tag">🌱 100% Cambodian Grown</div>
+          <h1>Fresh <em>Farm Products</em><br>Direct To Your Door</h1>
+          <p class="lead">From the rice fields of Batambang to the pepper farms of Kampot — the finest Cambodian
+            agricultural products from verified local farmers.</p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="{{ url_for('front_bp.product') }}" class="btn-hero-primary">Shop Now</a>
+            <a href="{{ url_for('front_bp.our_farm_page') }}" class="btn-hero-outline">Meet Our Farmers</a>
+          </div>
+          <div class="hero-stat-row">
+            <div class="hero-stat">
+              <div class="num">120+</div>
+              <div class="lbl">Local Farms</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">3,500+</div>
+              <div class="lbl">Happy Buyers</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">25</div>
+              <div class="lbl">Provinces</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 hero-visual d-none d-lg-flex">
+          <div class="hero-circle">
+            <div class="hero-produce-grid">
+              <div class="produce-chip">
+                <img src="/static/images/rice.jpg" alt="Jasmine Rice" />
+                <span class="name">Jasmine Rice</span>
+              </div>
+              <div class="produce-chip">
+                <img src="/static/images/pepper.jpg" alt="Kampot Pepper" />
+                <span class="name">Kampot Pepper</span>
+              </div>
+              <div class="produce-chip">
+                <img src="/static/images/mango.jpg" alt="Mango" />
+                <span class="name">Mango</span>
+              </div>
+              <div class="produce-chip">
+                <img src="/static/images/cassava.jpg" alt="Cassava" />
+                <span class="name">Cassava</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="container">
+      <div class="row g-3 justify-content-center text-center text-lg-start">
+        <div class="col-6 col-md-3">
+          <div class="item justify-content-center justify-content-md-start">
+            <div class="icon">🚚</div><span>Free delivery over $25</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="item justify-content-center justify-content-md-start">
+            <div class="icon">✅</div><span>Verified local farms</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="item justify-content-center justify-content-md-start">
+            <div class="icon">💳</div><span>ABA Pay & QR accepted</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="item justify-content-center justify-content-md-start">
+            <div class="icon">🔄</div><span>Easy returns & refunds</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <section style="padding:5rem 0;">
+    <div class="container">
+      <div class="row mb-5">
+        <div class="col-lg-6 fade-up">
+          <div class="section-eyebrow">Browse by category</div>
+          <h2 class="section-title">What Are You Looking For?</h2>
+          <p class="section-desc">Explore fresh, organic, and traditionally grown Cambodian agricultural products.</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-6 col-md-4 col-lg-2 fade-up"><a href="{{ url_for('front_bp.product') }}" class="text-decoration-none">
+            <div class="category-card">
+              <div class="cat-thumb"><img src="/static/images/rice.jpg" alt="Rice" /><span class="cat-label">12
+                  items</span></div>
+              <div class="cat-body">
+                <div class="cat-name">Rice & Grains</div>
+                <p class="cat-desc">Jasmine, white, black & red rice</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2 fade-up"><a href="{{ url_for('front_bp.product') }}" class="text-decoration-none">
+            <div class="category-card">
+              <div class="cat-thumb"><img src="/static/images/mango.jpg" alt="Fruits" /><span class="cat-label">24
+                  items</span></div>
+              <div class="cat-body">
+                <div class="cat-name">Tropical Fruits</div>
+                <p class="cat-desc">Mango, durian, rambutan & more</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2 fade-up"><a href="{{ url_for('front_bp.product') }}" class="text-decoration-none">
+            <div class="category-card">
+              <div class="cat-thumb"><img src="/static/images/vegetable.jpg" alt="Vegetables" /><span
+                  class="cat-label">18 items</span></div>
+              <div class="cat-body">
+                <div class="cat-name">Vegetables</div>
+                <p class="cat-desc">Fresh daily-harvested vegetables</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2 fade-up"><a href="{{ url_for('front_bp.product') }}" class="text-decoration-none">
+            <div class="category-card">
+              <div class="cat-thumb"><img src="/static/images/herb.jpg" alt="Spices" /><span class="cat-label">8
+                  items</span></div>
+              <div class="cat-body">
+                <div class="cat-name">Spices & Herbs</div>
+                <p class="cat-desc">Kampot pepper, lemongrass & more</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2 fade-up"><a href="{{ url_for('front_bp.product') }}" class="text-decoration-none">
+            <div class="category-card">
+              <div class="cat-thumb"><img src="/static/images/honey.jpg" alt="Honey" /><span class="cat-label">6
+                  items</span></div>
+              <div class="cat-body">
+                <div class="cat-name">Natural Honey</div>
+                <p class="cat-desc">Wild forest honey from Mondulkiri</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2 fade-up"><a href="{{ url_for('front_bp.product') }}" class="text-decoration-none">
+            <div class="category-card">
+              <div class="cat-thumb"><img src="/static/images/bean.jpg" alt="Beans" /><span class="cat-label">10
+                  items</span></div>
+              <div class="cat-body">
+                <div class="cat-name">Beans & Legumes</div>
+                <p class="cat-desc">Mung beans, soybeans & more</p>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="products-section" style="padding:5rem 0;">
+    <div class="container">
+      <div class="row align-items-end mb-5">
+        <div class="col-lg-6 fade-up">
+          <div class="section-eyebrow">Fresh this week</div>
+          <h2 class="section-title">Featured Products</h2>
+        </div>
+        <div class="col-lg-6 text-lg-end fade-up"><a href="{{ url_for('front_bp.product') }}"
+            style="color:var(--green-bright);font-size:0.9rem;text-decoration:none;font-weight:500;">View all products
+            →</a></div>
+      </div>
+      <div class="row g-4">
+
+        {% for product in products[:8] %}
+        <div class="col-6 col-md-4 col-lg-3 fade-up" data-cat="{{ product.name }}">
+          <div class="product-card">
+            <div class="product-thumb">
+              <a href="{{ url_for('front_bp.detail', product_id = product.id) }}">
+                <img src="{{ product.image }}" /></a><span class="badge-organic">{{ product.badge }}</span>
+            </div>
+            <div class="product-body">
+              <div class="product-origin">{{ product.origin }}</div>
+              <div class="product-name">{{ product.name}}</div>
+              <div class="product-unit">per {{ product.unit }}</div>
+              <div class="product-footer">
+                <span class="product-price" data-price="{{ product.price }}">${{ product.price }}</span>
+                <a href="{{ url_for('front_bp.cart_add', product_id = product.id) }}" class="btn-add text-decoration-none">+</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY US -->
+  <section class="why-section" style="padding:5rem 0;">
+    <div class="container">
+      <div class="row mb-5">
+        <div class="col-lg-6 fade-up">
+          <div class="section-eyebrow" style="color:var(--gold);">Why choose us</div>
+          <h2 class="section-title" style="color:#fff;">Built for Cambodian Farmers & Buyers</h2>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3 fade-up">
+          <div class="why-card">
+            <div class="why-icon">🤝</div>
+            <div class="why-title">Direct From Farmers</div>
+            <p class="why-desc">No middlemen. Farmers earn more, you pay less. Every product is traceable to its source
+              province.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3 fade-up">
+          <div class="why-card">
+            <div class="why-icon">🌱</div>
+            <div class="why-title">Naturally Grown</div>
+            <p class="why-desc">We partner only with farms using traditional and sustainable growing methods — no
+              harmful chemicals.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3 fade-up">
+          <div class="why-card">
+            <div class="why-icon">📦</div>
+            <div class="why-title">Same-Day Delivery</div>
+            <p class="why-desc">Order before 10 AM in Phnom Penh and receive your fresh produce the same afternoon.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3 fade-up">
+          <div class="why-card">
+            <div class="why-icon">💬</div>
+            <div class="why-title">Khmer Support</div>
+            <p class="why-desc">Our team speaks Khmer and English. Reach us on Telegram or Messenger anytime.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section style="padding:5rem 0; background:var(--green-pale);">
+    <div class="container">
+      <div class="row mb-5">
+        <div class="col-lg-5 fade-up">
+          <div class="section-eyebrow">What buyers say</div>
+          <h2 class="section-title">Real Reviews From Real Customers</h2>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4 fade-up">
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">The jasmine rice is incredible. It smells so fragrant when cooking — nothing
+              like what you find in the supermarket. Will order every month.</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">🙍</div>
+              <div>
+                <div class="author-name">Sreymom K.</div>
+                <div class="author-role">Regular buyer, Phnom Penh</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 fade-up">
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">I run a restaurant and source all my herbs and peppers through ចម្ការខ្មែរ.
+              Freshness is consistent, delivery is on time, and prices are fair.</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">👨‍🍳</div>
+              <div>
+                <div class="author-name">David Lim</div>
+                <div class="author-role">Restaurant owner, Siem Reap</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 fade-up">
+          <div class="testimonial-card">
+            <div class="stars">★★★★☆</div>
+            <p class="testimonial-text">Love that I can pay with ABA Pay. The mango and banana bundle was excellent.
+              Wish there were more vegetable options for the provinces!</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">🙍‍♀️</div>
+              <div>
+                <div class="author-name">Chanthy P.</div>
+                <div class="author-role">Buyer, Battambang</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" style="padding:5rem 0;">
+    <div class="container position-relative">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-7 fade-up">
+          <h2>Start Shopping Fresh Cambodian<br>Farm Products Today</h2>
+          <p class="mt-3">Join over 3,500 happy customers across Cambodia. Order before 10 AM for same-day delivery in
+            Phnom Penh.</p>
+        </div>
+        <div class="col-lg-5 text-lg-end fade-up">
+          <div class="d-flex flex-wrap gap-3 justify-content-lg-end">
+            <a href="{{ url_for('front_bp.product') }}" class="btn-cta-gold">Browse Products</a>
+            <a href="{{ url_for('front_bp.contact') }}" class="btn-cta-white">Contact Us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  {% include '/front/share/footer.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/script/main.js"></script>
+</body>
+
+</html>
