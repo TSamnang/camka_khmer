@@ -10,7 +10,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
-def get_user_key():
+def get_user_id():
     user_id = session.get("id")
     return f"user_{user_id}" if user_id else get_remote_address()
 

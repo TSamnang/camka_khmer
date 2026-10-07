@@ -8,9 +8,12 @@ from models.user_farmer import USER_FARMER
 from models.user_customer import USER_CUSTOMER
 from helper import save_profile_image,allowed
 
+from extension import limiter, get_user_id
+
 
 @admin_bp.get('/user/farmer')
 @login_required
+@limiter.limit("10 per minute", key_func=get_user_id)
 def user_farmer_page():
     module = 'user_farmer'
     sql = text("SELECT * FROM USER_FARMER")
@@ -21,6 +24,7 @@ def user_farmer_page():
 
 
 @admin_bp.get('/user/customer')
+@limiter.limit("10 per minute", key_func=get_user_id)
 @login_required
 def user_customer_page():
     module = 'user_customer'
@@ -31,6 +35,7 @@ def user_customer_page():
 
 
 @admin_bp.get('/user/add-farmer')
+@limiter.limit("10 per minute", key_func=get_user_id)
 @login_required
 def add_user_farmer():
     module = 'user / add / farmer'
@@ -69,6 +74,7 @@ def do_add_user_farmer():
 
 
 @admin_bp.get('/user/add-customer')
+@limiter.limit("10 per minute", key_func=get_user_id)
 @login_required
 def add_user_customer():
     module = 'user / add / customer'
@@ -102,6 +108,7 @@ def do_add_user_customer():
 
 
 @admin_bp.get('/user/edit-user/<int:user_id>')
+@limiter.limit("10 per minute", key_func=get_user_id)
 @login_required
 def edit_user(user_id):
     module = 'user / edit / user'
@@ -144,6 +151,7 @@ def do_edit_user():
 
 
 @admin_bp.get('/user/confirm-delete/<int:user_id>')
+@limiter.limit("10 per minute", key_func=get_user_id)
 @login_required
 def confirm_delete(user_id):
     module = 'user / confirm delete'

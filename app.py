@@ -16,7 +16,7 @@ migrate.init_app(app, db)
 limiter.init_app(app)
 csrf.init_app(app)
 core.init_app(app, resources={
-    r"/api/*": {"origins": "http://localhost:4200"}
+    r"/api/*": {"origins": "http://localhost:3200"}
 })
 
 
