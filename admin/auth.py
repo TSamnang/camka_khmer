@@ -6,8 +6,6 @@ from werkzeug.security import check_password_hash
 from functools import wraps
 
 
-
-
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -17,9 +15,8 @@ def login_required(view):
 
     return wrapped
 
-
 @admin_bp.get('/login')
-@limiter.limit("10 per day")
+@limiter.limit("10 per minute")
 def admin_login():
     module = 'login'
     session.clear()
@@ -27,7 +24,7 @@ def admin_login():
 
 
 @admin_bp.post('/login')
-@limiter.limit("3 per day")
+@limiter.limit("5 per minute")
 def admin_do_login():
     module = 'login'
     form = request.form
