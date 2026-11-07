@@ -4,11 +4,10 @@
       <div class="col-lg-4"><div class="footer-brand">ចម្ការ<span>ខ្មែរ</span></div><p class="footer-desc">Connecting Cambodia's local farmers directly to buyers. Fresh produce, fair prices, and proud support for rural communities.</p></div>
       <div class="col-6 col-lg-2">
           <div class="footer-heading">Shop</div>
-          <a class="footer-link" href="{{ url_for('front_bp.product') }}">Rice & Grains</a>
-          <a class="footer-link" href="{{ url_for('front_bp.product') }}">Fruits</a>
-          <a class="footer-link" href="{{ url_for('front_bp.product') }}">Vegetables</a>
-          <a class="footer-link" href="{{ url_for('front_bp.product') }}">Spices</a>
-          <a class="footer-link" href="{{ url_for('front_bp.product') }}">Honey</a></div>
+          {% for cat in categories %}
+          <a class="footer-link" href="{{ url_for('front_bp.product', category=cat.name) }}">{{ cat.name }}</a>
+          {% endfor %}
+      </div>
       <div class="col-6 col-lg-2">
           <div class="footer-heading">Company</div>
           <a class="footer-link" href="{{ url_for('front_bp.about') }}">About Us</a>

@@ -6,10 +6,171 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Checkout — ចម្ការខ្មែរ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
   <link href="/static/style/checkout.css" rel="stylesheet" />
+  <style>
+    /* KHQR Payment Modal Backdrop & Container */
+    .khqr-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 1050;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .khqr-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .khqr-modal-card {
+      background: #ffffff;
+      border-radius: 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+      border: 1px solid #f1ece4;
+      text-align: center;
+      position: relative;
+      animation: popUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popUp {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .khqr-header {
+      background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .khqr-header .brand-title {
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .khqr-header .amount-pill {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 0.4rem;
+    }
+
+    .khqr-body {
+      padding: 1.5rem 1.75rem 1.25rem;
+    }
+
+    .khqr-frame {
+      display: inline-block;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 16px;
+      border: 2px dashed #e2e8f0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1rem;
+    }
+
+    .khqr-frame img {
+      width: 220px;
+      height: 220px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #fef2f2;
+      color: #b91c1c;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.35rem 1rem;
+      border-radius: 50px;
+      border: 1px solid #fecaca;
+    }
+
+    .timer-progress {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 0.75rem auto 1rem;
+      max-width: 260px;
+    }
+
+    .timer-progress-bar {
+      height: 100%;
+      background: #e11d48;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    .scan-note {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin-bottom: 1.25rem;
+    }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .khqr-success-view {
+      padding: 2.5rem 1.5rem;
+      display: none;
+    }
+
+    .success-icon-circle {
+      width: 72px;
+      height: 72px;
+      background: #d1fae5;
+      color: #059669;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 1.25rem;
+    }
+  </style>
 </head>
 
 <body style="background: var(--cream);">
@@ -37,90 +198,353 @@
     <div class="container">
       <a href="{{ url_for('front_bp.cart') }}" class="text-decoration-none text-muted mb-4 d-inline-block">← Back to Cart</a>
 
-        <form method="post" action="{{ url_for('front_bp.checkout_post') }}">
-            <div class="row g-4">
-        <!-- Billing & Shipping Form -->
-            <div class="col-lg-7">
-          <div class="checkout-card">
-            <h2 class="checkout-title">1. Delivery Information</h2>
+      <form id="checkoutForm" method="post" action="{{ url_for('front_bp.checkout_post') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-4">
+          <!-- Billing & Shipping Form -->
+          <div class="col-lg-7">
+            <div class="checkout-card">
+              <h2 class="checkout-title">1. Delivery Information</h2>
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label text-muted" style="font-size: 0.85rem;">First Name</label>
-                  <input type="text" name="firstname" class="form-control" required>
+                  <input type="text" id="firstNameInput" name="firstname" class="form-control" value="{{ (customer.customer_name.split(' ')[0]) if (customer and customer.customer_name) else '' }}" placeholder="e.g. Piseth" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label text-muted" style="font-size: 0.85rem;">Last Name</label>
-                  <input type="text" name="lastname" class="form-control" required>
+                  <input type="text" id="lastNameInput" name="lastname" class="form-control" value="{{ (customer.customer_name.split(' ')[1:]|join(' ')) if (customer and customer.customer_name and ' ' in customer.customer_name) else '' }}" placeholder="e.g. Vong" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label text-muted" style="font-size: 0.85rem;">Phone Number</label>
-                  <input type="tel" name="phone" class="form-control" placeholder="012 345 678" required>
+                  <input type="tel" id="phoneInput" name="phone" class="form-control" value="{{ customer.phoneNumber if (customer and customer.phoneNumber) else '' }}" placeholder="012 345 678" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label text-muted" style="font-size: 0.85rem;">Email Address (Optional)</label>
-                  <input type="email" name="email" class="form-control">
+                  <label class="form-label text-muted" style="font-size: 0.85rem;">Email Address</label>
+                  <input type="email" id="emailInput" name="email" class="form-control" value="{{ customer.customer_email if (customer and customer.customer_email) else '' }}" placeholder="example@mail.com">
                 </div>
                 <div class="col-12">
                   <label class="form-label text-muted" style="font-size: 0.85rem;">Delivery Address</label>
-                  <textarea class="form-control" name="address" rows="3" placeholder="Street, House Number, Commune/Sangkat"
-                    required></textarea>
+                  <textarea class="form-control" id="addressInput" name="address" rows="3" placeholder="Street, House Number, Commune/Sangkat, City" required>{{ customer.location if (customer and customer.location) else '' }}</textarea>
                 </div>
-{#                <div class="col-12">#}
-{#                  <label class="form-label text-muted" style="font-size: 0.85rem;">Delivery Notes (Optional)</label>#}
-{#                  <input type="text" class="form-control" placeholder="e.g. Call before delivery">#}
-{#                </div>#}
               </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="col-lg-5">
+            <div class="cart-summary-card">
+              <h3 style="font-family: 'Playfair Display', serif; color: var(--text-dark); margin-bottom: 1.5rem;">Order Summary</h3>
+
+              <div class="d-flex flex-column gap-3 mb-4 border-bottom pb-4" id="checkoutItems">
+                {% for item in cart_list %}
+                <div class="d-flex align-items-center gap-3">
+                  <div class="position-relative flex-shrink-0">
+                    <img src="{{ item.image }}" alt="{{ item.name }}"
+                      style="width: 64px; height: 64px; object-fit: cover; border-radius: 12px; border: 1px solid #e8e0d4;" />
+                  </div>
+                  <div class="flex-grow-1">
+                    <div style="font-weight: 600; font-size: 0.92rem; color: var(--text-dark);">{{ item.name }}</div>
+                    <div style="font-size: 0.8rem; color: #8a7968;">{{ item.unit }} · Quantity: {{ item.qty }}</div>
+                  </div>
+                  <div style="font-weight: 700; color: var(--green-deep); white-space: nowrap;">
+                    ${{ '%.2f'|format(item.price * item.qty) }}
+                  </div>
+                </div>
+                {% else %}
+                <div class="text-muted text-center py-3">No items in cart</div>
+                {% endfor %}
+              </div>
+
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="checkoutSubtotal" style="font-weight: 500; color: var(--text-dark);">${{ '%.2f'|format(subtotal) }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Delivery</span>
+                <span id="checkoutDelivery" style="color: var(--green-bright); font-weight: 500;">${{ '%.2f'|format(delivery) }}</span>
+              </div>
+              <div class="summary-row total mb-4">
+                <span>Total to Pay</span>
+                <span id="checkoutTotal">${{ '%.2f'|format(total) }}</span>
+              </div>
+
+              <button type="submit" id="btnPlaceOrder" class="btn-checkout" {{ 'disabled' if not cart_list }}>
+                Place Order & Pay with KHQR
+              </button>
+
+              <div class="text-center text-muted mt-3" style="font-size: 0.8rem;">
+                🔒 Supports Bakong, ABA, ACLEDA, Wing & all Cambodian banks.
+              </div>
+            </div>
           </div>
         </div>
-
-        <!-- Order Summary -->
-            <div class="col-lg-5">
-              <div class="cart-summary-card">
-                <h3 style="font-family: 'Playfair Display', serif; color: var(--text-dark); margin-bottom: 1.5rem;">Order
-                  Summary</h3>
-
-                <div class="d-flex flex-column gap-3 mb-4 border-bottom pb-4" id="checkoutItems">
-                  {% for item in cart_list %}
-                    <div class="d-flex align-items-center gap-3">
-                    <div class="position-relative flex-shrink-0">
-                      <img src="{{ item.image}}"
-                        alt="{{ item.name }}"
-                        style="width: 64px; height: 64px; object-fit: cover; border-radius: 12px; border: 1px solid #e8e0d4;" />
-                    </div>
-                    <div class="flex-grow-1">
-                      <div style="font-weight: 600; font-size: 0.92rem; color: var(--text-dark);">{{ item.name}}</div>
-                      <div style="font-size: 0.8rem; color: #8a7968;">{{ item.unit }} · Quantity of Item: {{ item.qty}}</div>
-                    </div>
-                    <div style="font-weight: 700; color: var(--green-deep); white-space: nowrap;">${{ '%.2f'|format(item.price * item.qty) }}</div>
-                  </div>
-                  {% endfor %}
-                </div>
-
-                <div class="summary-row"><span>Subtotal</span><span id="checkoutSubtotal"
-                    style="font-weight: 500; color: var(--text-dark);">${{ '%.2f'|format(subtotal) }}</span></div>
-                <div class="summary-row"><span>Delivery</span><span id="checkoutDelivery"
-                    style="color: var(--green-bright); font-weight: 500;">${{ '%.2f'|format(delivery) }}</span></div>
-                <div class="summary-row total mb-4"><span>Total to Pay</span><span id="checkoutTotal">${{ '%.2f'|format(total) }}</span></div>
-
-                <button type="submit" class="btn-checkout">Place Order</button>
-
-                <div class="text-center text-muted mt-3" style="font-size: 0.8rem;">
-                  🔒 Payments are secure and encrypted.
-                </div>
-              </div>
-            </div>
-            </div>
-        </form>
-
+      </form>
     </div>
   </section>
+
+  <!-- ========================================================================= -->
+  <!-- KHQR POPUP MODAL (Centered in web browser with 5-minute countdown timer)  -->
+  <!-- ========================================================================= -->
+  <div class="khqr-overlay" id="khqrModal">
+    <div class="khqr-modal-card">
+      
+      <!-- KHQR Header -->
+      <div class="khqr-header">
+        <div class="brand-title">
+          <span>🇰🇭</span> KHQR • BAKONG
+        </div>
+        <div class="amount-pill" id="modalAmountDisplay">
+          ${{ '%.2f'|format(total) }} USD
+        </div>
+      </div>
+
+      <!-- Main Modal Body -->
+      <div class="khqr-body" id="khqrMainBody">
+        <div class="text-muted small mb-2">Order: <strong id="modalOrderNumber">ORD-PENDING</strong></div>
+
+        <!-- The Base64 Data URI Image Container -->
+        <div class="khqr-frame">
+          <img id="khqrImage" src="" alt="KHQR Payment Code" />
+        </div>
+
+        <!-- 5-Minute Countdown Timer -->
+        <div class="mb-2">
+          <div class="timer-badge">
+            <i class="bi bi-clock-history"></i>
+            <span id="khqrTimer">05:00</span>
+          </div>
+        </div>
+        <div class="timer-progress">
+          <div class="timer-progress-bar" id="khqrProgressBar"></div>
+        </div>
+
+        <div class="scan-note">
+          <div><span class="pulse-dot"></span><strong id="modalStatusText">Waiting for payment scan...</strong></div>
+          <div class="mt-1" style="font-size: 0.76rem;">Scan with Bakong, ABA, Wing, ACLEDA, or any KHQR app.</div>
+        </div>
+
+        <!-- Action / Testing Controls -->
+        <div class="d-flex flex-column gap-2 mt-3">
+          <button type="button" id="btnSimulatePayment" class="btn btn-sm btn-outline-success w-100 py-2" style="font-weight: 500; border-radius: 50px;">
+            <i class="bi bi-patch-check-fill me-1"></i>Simulate Payment (Dev / Test)
+          </button>
+          <button type="button" id="btnCloseModal" class="btn btn-sm btn-link text-muted text-decoration-none">
+            Cancel & Return
+          </button>
+        </div>
+      </div>
+
+      <!-- Success Screen (Shown once paid) -->
+      <div class="khqr-success-view" id="khqrSuccessView">
+        <div class="success-icon-circle">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: var(--green-deep); margin-bottom: 0.5rem;">Payment Successful!</h4>
+        <p class="text-muted small mb-4">Your order has been paid and sent to our farm market dashboard. Redirecting you to <strong>My Orders</strong>...</p>
+        <div class="spinner-border text-success spinner-border-sm" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- FOOTER -->
   {% include '/front/share/footer.html' %}
 
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/static/script/main.js"></script>
+
+  <script>
+    (function () {
+      const checkoutForm = document.getElementById('checkoutForm');
+      const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+      const modal = document.getElementById('khqrModal');
+      const khqrImage = document.getElementById('khqrImage');
+      const khqrTimer = document.getElementById('khqrTimer');
+      const khqrProgressBar = document.getElementById('khqrProgressBar');
+      const modalAmountDisplay = document.getElementById('modalAmountDisplay');
+      const modalOrderNumber = document.getElementById('modalOrderNumber');
+      const modalStatusText = document.getElementById('modalStatusText');
+      const khqrMainBody = document.getElementById('khqrMainBody');
+      const khqrSuccessView = document.getElementById('khqrSuccessView');
+      const btnCloseModal = document.getElementById('btnCloseModal');
+      const btnSimulatePayment = document.getElementById('btnSimulatePayment');
+
+      let timerInterval = null;
+      let pollInterval = null;
+      let currentOrderId = null;
+      const TOTAL_SECONDS = 300; // 5 minutes
+      let remainingSeconds = TOTAL_SECONDS;
+
+      // Handle checkout submission
+      if (checkoutForm) {
+        checkoutForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          btnPlaceOrder.disabled = true;
+          btnPlaceOrder.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating KHQR...';
+
+          const formData = new FormData(checkoutForm);
+
+          try {
+            const resp = await fetch("{{ url_for('front_bp.checkout_post') }}", {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+              },
+              body: formData
+            });
+
+            const data = await resp.json();
+
+            if (resp.status === 401 || data.require_account) {
+              alert(data.error || 'Please sign in or create an account to proceed to checkout.');
+              window.location.href = data.login_url || "{{ url_for('front_bp.login', next=url_for('front_bp.checkout'), msg='need_account') }}";
+              return;
+            }
+
+            if (data.success && data.base64_uri) {
+              openKhqrModal(data);
+            } else {
+              alert(data.error || 'Failed to place order. Please try again.');
+              btnPlaceOrder.disabled = false;
+              btnPlaceOrder.innerHTML = 'Place Order & Pay with KHQR';
+            }
+          } catch (err) {
+            console.error('Checkout error:', err);
+            // Fallback: standard submit if fetch fails
+            checkoutForm.submit();
+          }
+        });
+      }
+
+      function openKhqrModal(data) {
+        currentOrderId = data.order_id;
+        modalOrderNumber.textContent = data.order_number || ('#' + data.order_id);
+        modalAmountDisplay.textContent = '$' + Number(data.total).toFixed(2) + ' USD';
+        khqrImage.src = data.base64_uri;
+
+        // Reset UI states
+        khqrMainBody.style.display = 'block';
+        khqrSuccessView.style.display = 'none';
+        modalStatusText.textContent = 'Waiting for payment scan...';
+
+        remainingSeconds = data.expires_seconds || TOTAL_SECONDS;
+        updateTimerDisplay();
+
+        modal.classList.add('show');
+
+        // Start countdown timer (5 minutes)
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(handleCountdown, 1000);
+
+        // Start polling payment status every 2.5 seconds
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(pollPaymentStatus, 2500);
+
+        btnPlaceOrder.disabled = false;
+        btnPlaceOrder.innerHTML = 'Place Order & Pay with KHQR';
+      }
+
+      function handleCountdown() {
+        remainingSeconds--;
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          clearInterval(pollInterval);
+          khqrTimer.textContent = '00:00';
+          khqrProgressBar.style.width = '0%';
+          modalStatusText.textContent = 'Payment expired. Please place a new order.';
+          btnSimulatePayment.disabled = true;
+          return;
+        }
+        updateTimerDisplay();
+      }
+
+      function updateTimerDisplay() {
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        khqrTimer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        const pct = (remainingSeconds / TOTAL_SECONDS) * 100;
+        khqrProgressBar.style.width = pct + '%';
+      }
+
+      async function pollPaymentStatus() {
+        if (!currentOrderId) return;
+        try {
+          const resp = await fetch(`/checkout/check-status/${currentOrderId}`);
+          const data = await resp.json();
+          if (data.status === 'PAID') {
+            onPaymentSuccess(currentOrderId);
+          } else if (data.status === 'SCANNED') {
+            modalStatusText.innerHTML = '<span class="pulse-dot"></span><strong>📱 QR Code Scanned! Authorizing...</strong>';
+          }
+        } catch (err) {
+          console.warn('Status check warning:', err);
+        }
+      }
+
+      // Simulate payment for quick local testing/demo
+      if (btnSimulatePayment) {
+        btnSimulatePayment.addEventListener('click', async function () {
+          if (!currentOrderId) return;
+          btnSimulatePayment.disabled = true;
+          btnSimulatePayment.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
+          try {
+            const resp = await fetch(`/checkout/simulate-payment/${currentOrderId}`, {
+              method: 'POST',
+              headers: { 'Accept': 'application/json' }
+            });
+            const data = await resp.json();
+            if (data.success && data.status === 'PAID') {
+              onPaymentSuccess(currentOrderId);
+            }
+          } catch (err) {
+            console.error('Simulate payment error:', err);
+            btnSimulatePayment.disabled = false;
+            btnSimulatePayment.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i>Simulate Payment (Dev / Test)';
+          }
+        });
+      }
+
+      function onPaymentSuccess(orderId) {
+        clearInterval(timerInterval);
+        clearInterval(pollInterval);
+
+        // Clear cart cookie directly in browser
+        document.cookie = "cart_list=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        // Transition to success screen
+        khqrMainBody.style.display = 'none';
+        khqrSuccessView.style.display = 'block';
+
+        // Redirect to My Orders after 1.5s
+        setTimeout(() => {
+          window.location.href = `{{ url_for('front_bp.my_orders') }}?order_id=${orderId}`;
+        }, 1500);
+      }
+
+      if (btnCloseModal) {
+        btnCloseModal.addEventListener('click', function () {
+          clearInterval(timerInterval);
+          clearInterval(pollInterval);
+          modal.classList.remove('show');
+        });
+      }
+
+      // If server passed modal_order on direct non-AJAX submit
+      {% if modal_order and modal_base64_uri %}
+      openKhqrModal({
+        order_id: {{ modal_order.id }},
+        order_number: "{{ modal_order.order_number }}",
+        total: {{ modal_order.total }},
+        base64_uri: "{{ modal_base64_uri }}",
+        expires_seconds: 300
+      });
+      {% endif %}
+    })();
+  </script>
 </body>
 
 </html>

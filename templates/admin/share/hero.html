@@ -11,10 +11,16 @@
         <a href="{{ url_for('admin_bp.add_user_customer') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Customer</a>
         {% endif %}
         {% if module == 'category' %}
-        <a href="{{ url_for('admin_bp.add_product') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Category</a>
+        <a href="{{ url_for('admin_bp.add_category') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Category</a>
+        {% endif %}
+        {% if module in ['category / add', 'category / edit', 'category / confirm delete'] %}
+        <a href="{{ url_for('admin_bp.category_page') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to categories</a>
         {% endif %}
         {% if module == 'product' %}
         <a href="{{ url_for('admin_bp.add_product') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
+        {% endif %}
+        {% if module in ['product / add', 'product / edit', 'product / confirm delete'] %}
+        <a href="{{ url_for('admin_bp.product_page') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to products</a>
         {% endif %}
       </div>
     </div>

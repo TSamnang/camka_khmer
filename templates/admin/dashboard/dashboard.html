@@ -9,7 +9,7 @@
           <div class="stat-card d-flex justify-content-between align-items-start">
             <div>
               <div class="stat-label">Farmers</div>
-              <div class="stat-value">3</div>
+              <div class="stat-value">{{ farmer_count }}</div>
             </div>
             <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
           </div>
@@ -18,7 +18,7 @@
           <div class="stat-card d-flex justify-content-between align-items-start">
             <div>
               <div class="stat-label">Customers</div>
-              <div class="stat-value">2</div>
+              <div class="stat-value">{{ customer_count }}</div>
             </div>
             <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
           </div>
@@ -27,7 +27,7 @@
           <div class="stat-card d-flex justify-content-between align-items-start">
             <div>
               <div class="stat-label">Products pending</div>
-              <div class="stat-value">2</div>
+              <div class="stat-value">{{ pending_count }}</div>
             </div>
             <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
           </div>
@@ -36,7 +36,7 @@
           <div class="stat-card d-flex justify-content-between align-items-start">
             <div>
               <div class="stat-label">Revenue (total)</div>
-              <div class="stat-value">$52.00</div>
+              <div class="stat-value">${{ "%.2f"|format(total_revenue) }}</div>
             </div>
             <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
           </div>
@@ -55,36 +55,37 @@
               <table class="table mb-0 align-middle">
                 <thead><tr><th>Product</th><th>Farmer</th><th>Category</th><th>Status</th></tr></thead>
                 <tbody>
+                  {% for product in recent_products %}
                   <tr>
-                    <td class="fw-semibold">Lemongrass</td>
-                    <td>Chan Sopheak</td>
-                    <td>Herbs &amp; Spices</td>
-                    <td><span class="pill pill-pending">Pending</span></td>
+                    <td class="fw-semibold">
+                      <div class="d-flex align-items-center gap-2">
+                        {% if product.image %}
+                        <img src="{{ product.image }}" alt="{{ product.name }}"
+                             style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;"
+                             onerror="this.src='/static/images/bread.jpg';">
+                        {% endif %}
+                        <span>{{ product.name }}</span>
+                      </div>
+                    </td>
+                    <td>{{ product.farm or product.origin or '-' }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ product.category }}</span></td>
+                    <td>
+                      {% if product.status|lower == 'approved' %}
+                        <span class="pill pill-approved">Approved</span>
+                      {% elif product.status|lower == 'pending' %}
+                        <span class="pill pill-pending">Pending</span>
+                      {% elif product.status|lower == 'rejected' %}
+                        <span class="pill pill-rejected">Rejected</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ product.status }}</span>
+                      {% endif %}
+                    </td>
                   </tr>
+                  {% else %}
                   <tr>
-                    <td class="fw-semibold">Dragon Fruit</td>
-                    <td>Sok Dara</td>
-                    <td>Fruits</td>
-                    <td><span class="pill pill-pending">Pending</span></td>
+                    <td colspan="4" class="text-center text-muted py-4">No products posted yet.</td>
                   </tr>
-                  <tr>
-                    <td class="fw-semibold">Jasmine Rice</td>
-                    <td>Sok Dara</td>
-                    <td>Rice &amp; Grains</td>
-                    <td><span class="pill pill-approved">Approved</span></td>
-                  </tr>
-                  <tr>
-                    <td class="fw-semibold">Organic Cabbage</td>
-                    <td>Chan Sopheak</td>
-                    <td>Vegetables</td>
-                    <td><span class="pill pill-approved">Approved</span></td>
-                  </tr>
-                  <tr>
-                    <td class="fw-semibold">Wild Honey</td>
-                    <td>Ly Vanna</td>
-                    <td>Fruits</td>
-                    <td><span class="pill pill-rejected">Rejected</span></td>
-                  </tr>
+                  {% endfor %}
                 </tbody>
               </table>
             </div>
@@ -100,30 +101,32 @@
               <table class="table mb-0 align-middle">
                 <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
                 <tbody>
+                  {% for order in recent_orders %}
                   <tr>
-                    <td class="fw-semibold">#104</td>
-                    <td>Vong Piseth</td>
-                    <td>$22.00</td>
-                    <td><span class="pill pill-pending">Pending</span></td>
+                    <td class="fw-semibold">
+                      <a href="{{ url_for('admin_bp.order_detail_page', order_id=order.id) }}" class="text-decoration-none">
+                        #{{ order.order_number }}
+                      </a>
+                    </td>
+                    <td>{{ order.customer_name }}</td>
+                    <td>${{ "%.2f"|format(order.total) }}</td>
+                    <td>
+                      {% if order.status|lower == 'confirmed' %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Confirmed</span>
+                      {% elif order.status|lower == 'delivered' %}
+                        <span class="pill pill-approved">Delivered</span>
+                      {% elif order.status|lower == 'cancelled' %}
+                        <span class="pill pill-rejected">Cancelled</span>
+                      {% else %}
+                        <span class="pill pill-pending">Pending</span>
+                      {% endif %}
+                    </td>
                   </tr>
+                  {% else %}
                   <tr>
-                    <td class="fw-semibold">#103</td>
-                    <td>Meas Sreymom</td>
-                    <td>$9.10</td>
-                    <td><span class="pill pill-processing">Processing</span></td>
+                    <td colspan="4" class="text-center text-muted py-4">No orders placed yet.</td>
                   </tr>
-                  <tr>
-                    <td class="fw-semibold">#102</td>
-                    <td>Vong Piseth</td>
-                    <td>$2.50</td>
-                    <td><span class="pill pill-shipped">Shipped</span></td>
-                  </tr>
-                  <tr>
-                    <td class="fw-semibold">#101</td>
-                    <td>Meas Sreymom</td>
-                    <td>$18.40</td>
-                    <td><span class="pill pill-delivered">Delivered</span></td>
-                  </tr>
+                  {% endfor %}
                 </tbody>
               </table>
             </div>

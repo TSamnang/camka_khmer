@@ -1,0 +1,200 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<main class="content-area">
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="panel">
+        <div class="panel-header d-flex justify-content-between align-items-center">
+          <h2>Edit Product</h2>
+          <a href="{{ url_for('admin_bp.product_page') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Products
+          </a>
+        </div>
+        <div class="panel-body p-4">
+          <form method="post" action="{{ url_for('admin_bp.do_edit_product') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+              <input type="text" id="prodNameInput" name="name" class="form-control" value="{{ product.name }}" required autofocus>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea id="prodDescInput" name="description" class="form-control" rows="3">{{ product.description or '' }}</textarea>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                <select id="prodCatInput" name="category" class="form-select" required>
+                  {% for cat in categories %}
+                    <option value="{{ cat.name }}" {{ 'selected' if cat.name|lower == product.category|lower or cat.id == product.category_id }}>{{ cat.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Farm / Farmer</label>
+                <input type="text" id="prodFarmInput" name="farm" class="form-control" value="{{ product.farm or '' }}" placeholder="Farm or Farmer Name">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Origin / Province</label>
+                <input type="text" id="prodOriginInput" name="origin" class="form-control" value="{{ product.origin or '' }}" placeholder="e.g. Phnom Penh">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Badge / Label</label>
+                <select name="badge" class="form-select">
+                  <option value="Fresh" {{ 'selected' if product.badge == 'Fresh' }}>Fresh</option>
+                  <option value="Organic" {{ 'selected' if product.badge == 'Organic' }}>Organic</option>
+                  <option value="Popular" {{ 'selected' if product.badge == 'Popular' }}>Popular</option>
+                  <option value="Healthy" {{ 'selected' if product.badge == 'Healthy' }}>Healthy</option>
+                  <option value="Premium" {{ 'selected' if product.badge == 'Premium' }}>Premium</option>
+                  <option value="Sweet" {{ 'selected' if product.badge == 'Sweet' }}>Sweet</option>
+                  <option value="Cold" {{ 'selected' if product.badge == 'Cold' }}>Cold</option>
+                  <option value="Crunchy" {{ 'selected' if product.badge == 'Crunchy' }}>Crunchy</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Price (USD) <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" id="prodPriceInput" step="0.01" min="0" name="price" class="form-control" value="{{ product.price }}" required>
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Unit <span class="text-danger">*</span></label>
+                <input type="text" id="prodUnitInput" name="unit" class="form-control" value="{{ product.unit or '1 kg' }}" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Stock Quantity</label>
+                <input type="number" min="0" name="stock" class="form-control" value="{{ product.stock }}" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Rating</label>
+                <select name="rating" class="form-select">
+                  <option value="★★★★★" {{ 'selected' if product.rating == '★★★★★' }}>★★★★★ (5 stars)</option>
+                  <option value="★★★★☆" {{ 'selected' if product.rating == '★★★★☆' }}>★★★★☆ (4 stars)</option>
+                  <option value="★★★☆☆" {{ 'selected' if product.rating == '★★★☆☆' }}>★★★☆☆ (3 stars)</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select id="prodStatusInput" name="status" class="form-select">
+                  <option value="Approved" {{ 'selected' if product.status|lower == 'approved' }}>Approved</option>
+                  <option value="Pending" {{ 'selected' if product.status|lower == 'pending' }}>Pending</option>
+                  <option value="Rejected" {{ 'selected' if product.status|lower == 'rejected' }}>Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Product Photo</label>
+              {% if product.image %}
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <img src="{{ product.org_image if product.org_image else product.image }}" alt="Current photo" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;" onerror="this.src='/static/images/bread.jpg';">
+                <span class="text-muted small">Current photo (100% original quality)</span>
+              </div>
+              {% endif %}
+              <input type="file" id="prodPhotoInput" name="photo" class="form-control" accept="image/*">
+              <div class="form-text">Leave blank to keep existing photo.</div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('admin_bp.product_page') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+              <button type="submit" class="btn btn-farm px-4">Update Product</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Preview Column -->
+    <div class="col-lg-4">
+      <div class="panel sticky-top" style="top: 20px;">
+        <div class="panel-header"><h2>Preview</h2></div>
+        <div class="panel-body p-4 text-center">
+          <div class="d-flex align-items-center justify-content-center mb-3" style="min-height: 220px; background: #f6f4ef; border: 1px solid #e4e0d6; border-radius: 12px; padding: 8px;">
+            <img id="previewImg" src="{{ product.org_image if product.org_image else product.image }}" alt="Preview" style="max-width: 100%; height: auto; max-height: 360px; object-fit: contain; border-radius: 8px;" onerror="this.src='/static/images/bread.jpg';">
+          </div>
+          <div class="mb-2">
+            <a id="previewFullLink" href="{{ product.org_image if product.org_image else product.image }}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-3" style="font-size: 0.78rem;">
+              <i class="bi bi-arrows-fullscreen me-1"></i>Open full size
+            </a>
+          </div>
+          <h5 id="previewTitle" class="fw-semibold mb-1">{{ product.name }}</h5>
+          <div id="previewMeta" class="text-muted small mb-2">{{ product.category }} · {{ product.farm or product.origin or 'Farm' }}</div>
+          <div class="fw-bold fs-5" style="color:#1e3323;">
+            $<span id="previewPrice">{{ "%.2f"|format(product.price) }}</span>
+            <span id="previewUnit" class="text-muted fw-normal small">/ {{ product.unit or 'unit' }}</span>
+          </div>
+          <span id="previewStatusBadge" class="pill pill-{{ product.status|lower }} mt-2 d-inline-block">{{ product.status }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const nameInput = document.getElementById('prodNameInput');
+  const catInput = document.getElementById('prodCatInput');
+  const farmInput = document.getElementById('prodFarmInput');
+  const priceInput = document.getElementById('prodPriceInput');
+  const unitInput = document.getElementById('prodUnitInput');
+  const statusInput = document.getElementById('prodStatusInput');
+  const photoInput = document.getElementById('prodPhotoInput');
+
+  const previewTitle = document.getElementById('previewTitle');
+  const previewMeta = document.getElementById('previewMeta');
+  const previewPrice = document.getElementById('previewPrice');
+  const previewUnit = document.getElementById('previewUnit');
+  const previewStatus = document.getElementById('previewStatusBadge');
+  const previewImg = document.getElementById('previewImg');
+  const previewFullLink = document.getElementById('previewFullLink');
+
+  function updatePreview() {
+    if (previewTitle) previewTitle.textContent = nameInput.value || 'Product Name';
+    const cat = catInput.value || 'Category';
+    const farm = farmInput.value || 'Farm';
+    if (previewMeta) previewMeta.textContent = `${cat} · ${farm}`;
+    if (previewPrice) previewPrice.textContent = priceInput.value ? parseFloat(priceInput.value).toFixed(2) : '0.00';
+    if (previewUnit) previewUnit.textContent = unitInput.value ? `/ ${unitInput.value}` : '/ unit';
+
+    if (previewStatus) {
+      previewStatus.textContent = statusInput.value;
+      previewStatus.className = `pill pill-${statusInput.value.toLowerCase()} mt-2 d-inline-block`;
+    }
+  }
+
+  [nameInput, catInput, farmInput, priceInput, unitInput, statusInput].forEach(el => {
+    if (el) el.addEventListener('input', updatePreview);
+  });
+
+  if (photoInput) {
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          if (previewFullLink) previewFullLink.href = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+</script>
+{% endblock %}
+

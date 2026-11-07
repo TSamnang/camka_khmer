@@ -1,0 +1,63 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<main class="content-area">
+  <div class="panel" style="max-width: 680px; margin: 50px auto;">
+    <div class="panel-header text-center">
+      <h2 class="text-danger mb-0">
+        <i class="bi bi-exclamation-triangle"></i> Confirm Category Deletion
+      </h2>
+    </div>
+    <form action="{{ url_for('admin_bp.delete_category') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="category_id" value="{{ category.id }}">
+
+      <div class="panel-body text-center pt-4 pb-4 px-4">
+        <p class="fs-5 mb-4">Are you sure you want to delete this category?</p>
+
+        <div class="table-responsive mb-4 text-start">
+          <table class="table mb-0 align-middle border">
+            <thead class="table-light">
+              <tr>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Product Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    {% if category.image %}
+                    <img src="{{ url_for('static', filename='uploads/thumb/' + category.image) }}" alt="{{ category.name }}"
+                         style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;"
+                         onerror="this.src='/static/images/vegetable.jpg';">
+                    {% else %}
+                    <div style="width: 40px; height: 40px; border-radius: 8px; background: #e8f5e9; color: #2e7d32; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                      <i class="bi bi-tag-fill"></i>
+                    </div>
+                    {% endif %}
+                    <span class="fw-semibold">{{ category.name }}</span>
+                  </div>
+                </td>
+                <td class="text-muted">{{ category.description or '-' }}</td>
+                <td><span class="badge bg-light text-dark border">{{ category.product_count }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="text-muted mb-4">
+          This action cannot be undone and will permanently remove this category from the database.
+        </p>
+
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+          <a href="{{ url_for('admin_bp.category_page') }}" class="btn btn-secondary px-4">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}
+

@@ -1,29 +1,130 @@
 {% extends 'admin/master.html' %}
 
 {% block content %}
-	    <main class="content-area">
-      <div class="panel">
-        <div class="panel-header">
-          <h2>All orders (4)</h2>
-        </div>
-        <div class="panel-body table-responsive">
-          <table class="table mb-0 align-middle">
-            <thead>
-              <tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th></th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="fw-semibold">#104</td>
-                <td>Vong Piseth</td>
-                <td>5</td>
-                <td>$22.00</td>
-                <td>2026-07-04</td>
-                <td><span class="pill pill-pending">Pending</span></td>
-                <td class="action-icons"><a href="{{ url_for('admin_bp.order_detail_page') }}" title="View"><i class="bi bi-eye"></i></a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+<main class="content-area">
+  <div class="panel">
+    <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <h2>Orders ({{ orders|length }})</h2>
+        {% if pending_count and pending_count > 0 %}
+        <span class="badge bg-danger rounded-pill" style="font-size: 0.8rem;">{{ pending_count }} Pending Action</span>
+        {% endif %}
       </div>
-    </main>
+
+      <!-- Filter Buttons -->
+      <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('admin_bp.order_page', status='all') }}"
+          class="btn btn-outline-secondary {{ 'active' if current_status == 'all' or not current_status }}">All ({{
+          total_count }})</a>
+        <a href="{{ url_for('admin_bp.order_page', status='pending') }}"
+          class="btn btn-outline-secondary {{ 'active' if current_status == 'pending' }}">
+          Pending ({{ pending_count }})
+        </a>
+        <a href="{{ url_for('admin_bp.order_page', status='confirmed') }}"
+          class="btn btn-outline-secondary {{ 'active' if current_status == 'confirmed' }}">
+          Confirmed ({{ confirmed_count }})
+        </a>
+        <a href="{{ url_for('admin_bp.order_page', status='delivered') }}"
+          class="btn btn-outline-secondary {{ 'active' if current_status == 'delivered' }}">
+          Delivered ({{ delivered_count }})
+        </a>
+      </div>
+    </div>
+
+    <div class="panel-body table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Date</th>
+            <th>Payment</th>
+            <th>Order Status</th>
+            <th class="text-end pe-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td class="fw-semibold">
+              <a href="{{ url_for('admin_bp.order_detail_page', order_id=order.id) }}" class="text-decoration-none"
+                style="color: var(--green-deep, #1b4332);">
+                #{{ order.order_number }}
+              </a>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ order.customer_name }}</div>
+              <div class="text-muted small">{{ order.phone }}</div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ order.item_count }} item{{ 's' if order.item_count != 1
+                }}</span>
+            </td>
+            <td class="fw-semibold">${{ "%.2f"|format(order.total) }}</td>
+            <td class="text-muted small">
+              {{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}
+            </td>
+            <td>
+              {% if order.payment_status|lower == 'paid' %}
+              <span class="pill pill-approved"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>
+              {% else %}
+              <span class="pill pill-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if order.status|lower == 'confirmed' %}
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i
+                  class="bi bi-shield-check me-1"></i>Confirmed</span>
+              {% elif order.status|lower == 'delivered' %}
+              <span class="pill pill-approved"><i class="bi bi-box2-heart-fill me-1"></i>Delivered</span>
+              {% elif order.status|lower == 'cancelled' %}
+              <span class="pill pill-rejected"><i class="bi bi-x-circle-fill me-1"></i>Cancelled</span>
+              {% elif order.status|lower == 'processing' %}
+              <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle"><i
+                  class="bi bi-arrow-repeat me-1"></i>Processing</span>
+              {% elif order.status|lower == 'shipped' %}
+              <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i
+                  class="bi bi-truck me-1"></i>Shipped</span>
+              {% else %}
+              <span class="pill pill-pending"><i class="bi bi-clock me-1"></i>Pending Confirm</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-3 text-nowrap">
+              {% if order.status|lower == 'pending' %}
+              <!-- Admin Quick Confirm Button -->
+              <form action="{{ url_for('admin_bp.confirm_order', order_id=order.id) }}" method="post" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-success me-1" title="Confirm Order">
+                  <i class="bi bi-check-lg me-1"></i>Confirm
+                </button>
+              </form>
+              {% endif %}
+              <a href="{{ url_for('admin_bp.order_detail_page', order_id=order.id) }}"
+                class="btn btn-sm btn-outline-secondary me-1" title="View details">
+                <i class="bi bi-eye"></i>
+              </a>
+              <form action="{{ url_for('admin_bp.delete_order', order_id=order.id) }}" method="post" class="d-inline"
+                onsubmit="return confirm('Delete this order?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete order">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              <div class="mb-2"><i class="bi bi-receipt text-muted" style="font-size: 2.5rem;"></i></div>
+              <p class="mb-0">No orders found for this status.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
 {% endblock %}

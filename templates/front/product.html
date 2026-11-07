@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Products — ចម្ការខ្មែរ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet" />
@@ -36,13 +37,10 @@
     <div class="container">
       <div class="d-flex align-items-center gap-2 flex-wrap justify-content-between">
         <div class="d-flex gap-2 flex-wrap">
-          <button class="filter-pill active" data-filter="all">All Products</button>
-          <button class="filter-pill" data-filter="rice">Rice & Grains</button>
-          <button class="filter-pill" data-filter="fruit">Fruits</button>
-          <button class="filter-pill" data-filter="veg">Vegetables</button>
-          <button class="filter-pill" data-filter="spice">Spices</button>
-          <button class="filter-pill" data-filter="honey">Honey</button>
-          <button class="filter-pill" data-filter="beans">Beans</button>
+          <button class="filter-pill {{ 'active' if not active_category or active_category|lower == 'all' }}" data-filter="all">All Products</button>
+          {% for cat in categories %}
+          <button class="filter-pill {{ 'active' if active_category and (active_category|lower == cat.name|lower or active_category|lower in cat.name|lower) }}" data-filter="{{ cat.name }}">{{ cat.name }}</button>
+          {% endfor %}
         </div>
         <select class="sort-select" id="sortSelect">
           <option value="default">Sort: Default</option>
@@ -59,7 +57,10 @@
     <div class="container">
       <div class="row g-4" id="productsGrid">
         {% for product in products %}
-        <div class="col-6 col-md-4 col-lg-3 fade-up" data-cat="{{ product.name }}">
+        {% set prod_cat = (product.category or '')|lower %}
+        {% set act_cat = (active_category or '')|lower %}
+        {% set is_match = (not active_category or act_cat == 'all' or act_cat in prod_cat or prod_cat in act_cat or act_cat in (product.name or '')|lower) %}
+        <div class="col-6 col-md-4 col-lg-3 fade-up" data-cat="{{ (product.category or '') + ' ' + (product.name or '') }}" style="{{ '' if is_match else 'display:none;' }}">
           <div class="product-card">
             <div class="product-thumb">
               <a href="{{ url_for('front_bp.detail', product_id = product.id) }}">
@@ -95,22 +96,43 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/static/script/main.js"></script>
   <script>
+    function applyFilter(filter) {
+      filter = (filter || '').toLowerCase();
+      const cards = document.querySelectorAll('#productsGrid [data-cat]');
+      let visible = 0;
+      cards.forEach(card => {
+        const cardCat = (card.dataset.cat || '').toLowerCase();
+        const show = filter === 'all' || filter === '' || cardCat.includes(filter) || filter.split(' ').some(word => word.length > 2 && cardCat.includes(word));
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      const noResults = document.getElementById('noResults');
+      if (noResults) noResults.classList.toggle('d-none', visible > 0);
+    }
+
     // Filter logic
     document.querySelectorAll('.filter-pill').forEach(pill => {
       pill.addEventListener('click', function () {
         document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
         this.classList.add('active');
-        const filter = this.dataset.filter;
-        const cards = document.querySelectorAll('#productsGrid [data-cat]');
-        let visible = 0;
-        cards.forEach(card => {
-          const show = filter === 'all' || card.dataset.cat === filter;
-          card.style.display = show ? '' : 'none';
-          if (show) visible++;
-        });
-        document.getElementById('noResults').classList.toggle('d-none', visible > 0);
+        applyFilter(this.dataset.filter);
+
+        // Update URL query string without reloading page
+        const url = new URL(window.location);
+        if (this.dataset.filter === 'all') {
+          url.searchParams.delete('category');
+        } else {
+          url.searchParams.set('category', this.dataset.filter);
+        }
+        window.history.replaceState({}, '', url);
       });
     });
+
+    // Check if active pill on page load
+    const activePill = document.querySelector('.filter-pill.active');
+    if (activePill && activePill.dataset.filter !== 'all') {
+      applyFilter(activePill.dataset.filter);
+    }
 
     // Sort logic
     document.getElementById('sortSelect').addEventListener('change', function () {

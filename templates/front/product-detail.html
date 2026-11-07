@@ -24,7 +24,7 @@
         <li class="breadcrumb-item"><a href="{{ url_for('front_bp.homepage') }}" style="color: var(--green-mid); text-decoration: none;">Home</a></li>
         <li class="breadcrumb-item"><a href="{{ url_for('front_bp.product') }}"
             style="color: var(--green-mid); text-decoration: none;">Products</a></li>
-        <li class="breadcrumb-item active">Jasmine Rice</li>
+        <li class="breadcrumb-item active">{{ product.name }}</li>
       </ol>
     </nav>
   </div>
@@ -34,7 +34,7 @@
     <div class="container">
       <div class="row g-5">
         <div class="col-lg-6 fade-up">
-          <img src="{{ product.image }}" alt="Jasmine Rice" class="product-detail-img">
+          <img src="{{ product.org_image if product.org_image else product.image }}" alt="{{ product.name }}" class="product-detail-img" style="object-fit: contain; background: #fbfbfb;">
         </div>
         <div class="col-lg-6 fade-up">
           <span class="badge-organic-lg">{{ product.badge }}</span>
@@ -42,9 +42,8 @@
           <div class="stars mb-3" style="font-size: 1.1rem;">{{product.rating}} <span
               style="color: var(--text-light); font-size: 0.9rem; font-family: 'DM Sans', sans-serif;">(42
               Reviews)</span></div>
-          <div class="product-price-lg">{{ product.price }}<span
-              style="font-size: 1rem; color: var(--text-light); font-family: 'DM Sans', sans-serif;">/ per 5 kg
-              bag</span></div>
+          <div class="product-price-lg">${{ "%.2f"|format(product.price) }}<span
+              style="font-size: 1rem; color: var(--text-light); font-family: 'DM Sans', sans-serif;">/ {{ product.unit }}</span></div>
 
           <p class="text-muted mb-4" style="line-height: 1.7; font-size: 1rem;">{{ product.description }}</p>
 
@@ -76,9 +75,10 @@
     </div>
   </section>
     <!-- Related Product -->
+  {% if related_product %}
   <section style="padding:3.5rem 0 5rem;">
-      <h3 style="margin-left: 320px">Related Product</h3><br>
-        <div class="container">
+    <div class="container">
+      <h3 class="mb-4" style="font-family: 'Playfair Display', serif;">Related Products</h3>
       <div class="row g-4" id="productsGrid">
         {% for product in related_product %}
         <div class="col-6 col-md-4 col-lg-3 fade-up" data-cat="{{ product.name }}">
@@ -93,13 +93,17 @@
               <div class="product-name">{{ product.name}}</div>
               <div class="product-unit">per {{ product.unit }}</div>
               <div class="product-footer">
-                <span class="product-price" data-price="{{ product.price }}">${{ product.price }}</span>
+                <span class="product-price" data-price="{{ product.price }}">${{ "%.2f"|format(product.price) }}</span>
                 <a href="{{ url_for('front_bp.cart_add', product_id=product.id) }}" class="btn-add text-decoration-none">+</a>
               </div>
             </div>
           </div>
         </div>
         {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   <!-- FOOTER -->
   {% include '/front/share/footer.html' %}

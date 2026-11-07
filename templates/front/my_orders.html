@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders — ចម្ការខ្មែរ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <link href="/static/style/product.css" rel="stylesheet" />
+  <style>
+    :root {
+      --green-deep: #1b4332;
+      --green-mid: #2d6a4f;
+      --green-bright: #40916c;
+      --green-light: #d8f3dc;
+      --cream: #faf7f2;
+      --text-dark: #1b2d20;
+      --text-light: #6b7c70;
+    }
+
+    body {
+      background-color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark);
+    }
+
+    .order-card {
+      background: #ffffff;
+      border: 1px solid #e8e0d4;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .order-card.highlight {
+      border: 2px solid var(--green-bright);
+      box-shadow: 0 6px 20px rgba(64, 145, 108, 0.15);
+    }
+
+    .badge-paid {
+      background-color: #d1fae5;
+      color: #065f46;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+    }
+
+    .badge-pending {
+      background-color: #fef3c7;
+      color: #92400e;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+    }
+
+    .badge-confirmed {
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+    }
+
+    .badge-delivered {
+      background-color: #dcfce7;
+      color: #166534;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+    }
+
+    .badge-cancelled {
+      background-color: #fee2e2;
+      color: #991b1b;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+    }
+
+    .item-thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid #e8e0d4;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  {% include '/front/share/navbar.html' %}
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <div class="container position-relative">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0" style="background:none;padding:0;">
+          <li class="breadcrumb-item"><a href="{{ url_for('front_bp.homepage') }}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('front_bp.product') }}">Products</a></li>
+          <li class="breadcrumb-item active">My Orders</li>
+        </ol>
+      </nav>
+      <h1 style="font-family: 'Playfair Display', serif;">My Orders</h1>
+      <p>View your past orders, real-time payment status, and delivery progress.</p>
+    </div>
+  </div>
+
+  <section style="padding: 3.5rem 0 5rem;">
+    <div class="container">
+
+      {% if highlight_id %}
+      <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4" role="alert" style="border-radius: 12px;">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>
+          <strong>Payment Successful!</strong> Your order <strong>#{{ highlight_id }}</strong> has been received and is waiting for farm confirmation.
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
+
+      {% if orders and orders|length > 0 %}
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            {% for order in orders %}
+            <div class="order-card {{ 'highlight' if highlight_id and (order.id == highlight_id or order.order_number == highlight_id|string) }}">
+              
+              <!-- Card Header -->
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 border-bottom pb-3 mb-3">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fw-bold fs-5" style="color: var(--green-deep);">#{{ order.order_number }}</span>
+                    {% if order.payment_status|lower == 'paid' %}
+                      <span class="badge-paid"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>
+                    {% else %}
+                      <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Payment Pending</span>
+                    {% endif %}
+
+                    {% if order.status|lower == 'confirmed' %}
+                      <span class="badge-confirmed"><i class="bi bi-shield-check me-1"></i>Confirmed</span>
+                    {% elif order.status|lower == 'delivered' %}
+                      <span class="badge-delivered"><i class="bi bi-box2-heart-fill me-1"></i>Delivered</span>
+                    {% elif order.status|lower == 'cancelled' %}
+                      <span class="badge-cancelled"><i class="bi bi-x-circle-fill me-1"></i>Cancelled</span>
+                    {% else %}
+                      <span class="badge-pending"><i class="bi bi-clock me-1"></i>Order Pending</span>
+                    {% endif %}
+                  </div>
+                  <div class="text-muted small">
+                    <i class="bi bi-calendar3 me-1"></i>Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') if order.created_at else 'Recent' }}
+                  </div>
+                </div>
+
+                <div class="text-end">
+                  <div class="fs-4 fw-bold" style="color: var(--green-deep);">${{ '%.2f'|format(order.total) }}</div>
+                  <div class="text-muted small">{{ order.item_count }} item{{ 's' if order.item_count != 1 }}</div>
+                </div>
+              </div>
+
+              <!-- Order Details & Items -->
+              <div class="row g-3">
+                <div class="col-md-7">
+                  <h6 class="fw-semibold text-muted mb-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Items in this order</h6>
+                  <div class="d-flex flex-column gap-2">
+                    {% for item in order.items %}
+                    <div class="d-flex align-items-center gap-3 py-1">
+                      <img src="{{ item.product_image or '/static/images/bread.jpg' }}" alt="{{ item.product_name }}" class="item-thumb" onerror="this.src='/static/images/bread.jpg';">
+                      <div class="flex-grow-1">
+                        <div class="fw-semibold" style="font-size: 0.95rem;">{{ item.product_name }}</div>
+                        <div class="text-muted small">Qty: {{ item.quantity }} × ${{ '%.2f'|format(item.price) }} / {{ item.unit }}</div>
+                      </div>
+                      <div class="fw-semibold text-end" style="color: var(--green-deep);">${{ '%.2f'|format(item.line_total) }}</div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Shipping Details -->
+                <div class="col-md-5 border-start-md ps-md-4">
+                  <h6 class="fw-semibold text-muted mb-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Details</h6>
+                  <div class="p-3 rounded-3" style="background: #fbfbfb; border: 1px solid #f0eae1;">
+                    <div class="fw-semibold mb-1"><i class="bi bi-person me-1"></i>{{ order.customer_name }}</div>
+                    <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>{{ order.phone }}</div>
+                    {% if order.email %}
+                    <div class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i>{{ order.email }}</div>
+                    {% endif %}
+                    <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ order.address }}</div>
+                  </div>
+
+                  <div class="mt-3 pt-2 border-top d-flex justify-content-between small text-muted">
+                    <span>Subtotal: ${{ '%.2f'|format(order.subtotal) }}</span>
+                    <span>Delivery: ${{ '%.2f'|format(order.delivery) }}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <div style="font-size: 3.5rem; margin-bottom: 1rem;">📦</div>
+          <h3 style="font-family: 'Playfair Display', serif; color: var(--text-dark);">No Orders Found</h3>
+          <p class="text-muted mb-4">You haven't placed any orders yet. Discover our fresh farm produce!</p>
+          <a href="{{ url_for('front_bp.product') }}" class="btn" style="background: var(--green-deep); color: white; padding: 0.65rem 1.75rem; border-radius: 50px;">
+            Shop Fresh Produce
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  {% include '/front/share/footer.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/script/main.js"></script>
+</body>
+
+</html>
+

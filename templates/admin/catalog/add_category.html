@@ -1,0 +1,80 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<main class="content-area">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="panel">
+        <div class="panel-header d-flex justify-content-between align-items-center">
+          <h2>Add New Category</h2>
+          <a href="{{ url_for('admin_bp.category_page') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Categories
+          </a>
+        </div>
+        <div class="panel-body p-4">
+          <form method="post" action="{{ url_for('admin_bp.do_add_category') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Category Image Upload -->
+            <div class="mb-4 d-flex flex-column align-items-center">
+              <label class="form-label fw-semibold mb-2 w-100">Category Image</label>
+              <div class="profile-upload-wrap" id="categoryUploadWrap" title="Click to choose a photo" style="width: 110px; height: 110px; border-radius: 12px; cursor: pointer; border: 2px dashed #bbf7d0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f9fbf9;">
+                <img id="categoryPreview" src="" alt="Category preview" class="profile-preview-img d-none" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="categoryPlaceholder" class="profile-placeholder text-center text-muted">
+                  <i class="bi bi-image" style="font-size: 1.8rem; color: #166534;"></i>
+                  <div class="small">Upload</div>
+                </div>
+              </div>
+              <input type="file" id="categoryPhotoInput" name="image" accept="image/*" class="d-none">
+              <p class="text-muted small mt-2 mb-0">Click to upload category picture (optional)</p>
+            </div>
+
+            <!-- Name / Title -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Category Name / Title <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. Vegetables, Fruits, Rice & Grains" required autofocus>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea name="description" class="form-control" rows="3" placeholder="e.g. Fresh leafy greens and vegetables"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('admin_bp.category_page') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+              <button type="submit" class="btn btn-farm px-4">Save Category</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const wrap = document.getElementById('categoryUploadWrap');
+  const fileInput = document.getElementById('categoryPhotoInput');
+  const preview = document.getElementById('categoryPreview');
+  const placeholder = document.getElementById('categoryPlaceholder');
+
+  if (wrap && fileInput) {
+    wrap.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        preview.classList.remove('d-none');
+        placeholder.classList.add('d-none');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
+{% endblock %}
+

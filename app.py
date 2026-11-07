@@ -5,6 +5,7 @@ from extension import db, migrate, limiter, csrf, core
 from front import front_bp
 from admin import admin_bp
 from api import api_bp
+from bakong_khqr import KHQR
 
 
 app = Flask(__name__)
@@ -16,19 +17,34 @@ migrate.init_app(app, db)
 limiter.init_app(app)
 csrf.init_app(app)
 core.init_app(app, resources={
-    r"/api/*": {"origins": "http://localhost:3200"}
+    r"/api/*": {"origins": Config.CORS_ORIGINS}
 })
 
 
-# Context processor to ensure cart_list is always available
+# Context processor to ensure cart_list and categories are always available
 @app.context_processor
-def inject_cart_defaults():
+def inject_defaults():
     try:
         cart_cookie = request.cookies.get('cart_list')
         cart_list = json.loads(cart_cookie) if cart_cookie else []
     except Exception:
         cart_list = []
-    return dict(cart_list=cart_list)
+
+    try:
+        from models.category import Category
+        categories = Category.query.order_by(Category.id.asc()).all()
+    except Exception:
+        categories = []
+
+    try:
+        from models.order import Order
+        pending_order_count = Order.query.filter(
+            db.func.lower(Order.status) == 'pending'
+        ).count()
+    except Exception:
+        pending_order_count = 0
+
+    return dict(cart_list=cart_list, categories=categories, pending_order_count=pending_order_count)
 
 
 #load model
@@ -39,6 +55,7 @@ app.register_blueprint(front_bp, url_prefix="/")
 app.register_blueprint(admin_bp, url_prefix="/admin")
 
 app.register_blueprint(api_bp, url_prefix="/api")
+csrf.exempt(api_bp)
 
 
 
@@ -77,8 +94,8 @@ def _429_alert(e):
         import requests
         from datetime import datetime
 
-        bot_token = "8603989647:AAFH5v_MG3uqnG32w1mcqXHT9BxmZW6dgQw"
-        chat_id = "@dev_camkakhmer"
+        bot_token = Config.TELEGRAM_DEV_BOT_TOKEN
+        chat_id = Config.TELEGRAM_DEV_CHAT_ID
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
         # Client IP (support proxy / forwarded headers)
@@ -172,8 +189,8 @@ def _500_alert(e):
         import requests
         from datetime import datetime
 
-        bot_token = "8603989647:AAFH5v_MG3uqnG32w1mcqXHT9BxmZW6dgQw"
-        chat_id = "@dev_camkakhmer"
+        bot_token = Config.TELEGRAM_DEV_BOT_TOKEN
+        chat_id = Config.TELEGRAM_DEV_CHAT_ID
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
         # Client IP (support proxy / forwarded headers)

@@ -1,0 +1,36 @@
+# Environment & Secrets (NEVER COMMIT SENSITIVE SECRETS TO GIT)
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# SQLite databases
+instance/*.sqlite3
+*.sqlite3
+*.db
+
+# Python byte code & caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+

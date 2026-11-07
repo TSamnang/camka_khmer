@@ -30,8 +30,11 @@
       </a>
 
       <div class="sidebar-section-label">Sales</div>
-      <a class="nav-link {{ 'active' if module == 'order' }}" href="{{ url_for('admin_bp.order_page') }}">
-        <i class="bi bi-receipt"></i> Orders
+      <a class="nav-link d-flex align-items-center justify-content-between {{ 'active' if module == 'order' or module.startswith('order') }}" href="{{ url_for('admin_bp.order_page') }}">
+        <span><i class="bi bi-receipt"></i> Orders</span>
+        {% if pending_order_count and pending_order_count > 0 %}
+          <span class="badge rounded-pill bg-danger" style="font-size: 0.72rem; padding: 0.28em 0.65em;">{{ pending_order_count }}</span>
+        {% endif %}
       </a>
 
       <div class="sidebar-section-label">System</div>
