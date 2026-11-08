@@ -3,9 +3,10 @@ from flask import render_template, request, make_response, url_for, redirect, js
 import json
 import random
 from datetime import datetime
+from bson import ObjectId
 from products import get_product_by_id
-from extension import db, csrf
-from models.order import Order, OrderItem
+from extension import mongo, csrf
+from models.order import Order
 from models.user_customer import USER_CUSTOMER
 from bakong_khqr import KHQR
 from config import Config
@@ -22,11 +23,8 @@ def generate_order_number():
 
 
 def build_khqr_data(amount, bill_number, phone_number=None):
-
     try:
-        #Token from .env
         khqr = KHQR(Config.BAKONG_TOKEN)
-
         qr_string = khqr.create_qr(
             account_id=Config.BAKONG_ACCOUNT_ID,
             merchant_name=Config.BAKONG_MERCHANT_NAME,
@@ -66,30 +64,41 @@ def send_telegram_order_alert(order, ordered_items):
 
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
+        order_num = order.get('order_number', '')
+        cust_name = order.get('customer_name', '')
+        cust_phone = order.get('phone', '')
+        cust_email = order.get('email', '')
+        cust_addr = order.get('address', '')
+        subtotal = float(order.get('subtotal', 0.0))
+        delivery = float(order.get('delivery', 0.0))
+        total = float(order.get('total', 0.0))
+
         message = f"🛒 <b>New Order Received!</b>\n\n"
-        message += f"🔖 <b>Order ID:</b> #{order.order_number}\n"
-        message += f"👤 <b>Name:</b> {order.customer_name}\n"
-        message += f"📞 <b>Phone:</b> {order.phone}\n"
-        if order.email:
-            message += f"📧 <b>Email:</b> {order.email}\n"
-        message += f"📍 <b>Address:</b> {order.address}\n\n"
+        message += f"🔖 <b>Order ID:</b> #{order_num}\n"
+        message += f"👤 <b>Name:</b> {cust_name}\n"
+        message += f"📞 <b>Phone:</b> {cust_phone}\n"
+        if cust_email:
+            message += f"📧 <b>Email:</b> {cust_email}\n"
+        message += f"📍 <b>Address:</b> {cust_addr}\n\n"
 
         message += f"🧾 <b>Items Ordered:</b>\n"
         message += "─" * 24 + "\n"
         for idx, item in enumerate(ordered_items, 1):
-            line_tot = item['qty'] * item['price']
+            qty = item.get('qty', item.get('quantity', 1))
+            price = item.get('price', 0.0)
+            line_tot = qty * price
             message += (
-                f"{idx}. <b>{item['name']}</b>\n"
-                f"   • Qty: {item['qty']} × {item.get('unit', '')}\n"
-                f"   • Price: ${item['price']:.2f}  →  <b>${line_tot:.2f}</b>\n"
+                f"{idx}. <b>{item.get('name', '')}</b>\n"
+                f"   • Qty: {qty} × {item.get('unit', '')}\n"
+                f"   • Price: ${price:.2f}  →  <b>${line_tot:.2f}</b>\n"
             )
         message += "─" * 24 + "\n"
-        message += f"📦 <b>Subtotal:</b>  ${order.subtotal:.2f}\n"
-        if order.delivery > 0:
-            message += f"🚚 <b>Delivery:</b>  ${order.delivery:.2f}\n"
+        message += f"📦 <b>Subtotal:</b>  ${subtotal:.2f}\n"
+        if delivery > 0:
+            message += f"🚚 <b>Delivery:</b>  ${delivery:.2f}\n"
         else:
             message += f"🚚 <b>Delivery:</b>  FREE\n"
-        message += f"💵 <b>Total:</b>  ${order.total:.2f}\n"
+        message += f"💵 <b>Total:</b>  ${total:.2f}\n"
         message += f"💳 <b>Payment:</b>  Pending (KHQR)"
 
         payload = {
@@ -114,7 +123,7 @@ def checkout():
     if not session.get('customer_id') or not session.get('is_customer_login'):
         return redirect(url_for('front_bp.login', next=url_for('front_bp.checkout'), msg='need_account'))
 
-    customer = db.session.get(USER_CUSTOMER, session.get('customer_id'))
+    customer = USER_CUSTOMER.find_by_id(session.get('customer_id'))
 
     cart_list = request.cookies.get('cart_list')
     cart_list = json.loads(cart_list) if cart_list else []
@@ -125,12 +134,12 @@ def checkout():
         if product is None:
             continue
         clean_cart.append({
-            'id':    item['id'],
-            'qty':   item['qty'],
-            'image': product['image'],
-            'name':  product['name'],
-            'unit':  product['unit'],
-            'price': product['price'],
+            'id':    str(item['id']),
+            'qty':   int(item['qty']),
+            'image': product.get('image', ''),
+            'name':  product.get('name', ''),
+            'unit':  product.get('unit', ''),
+            'price': float(product.get('price', 0.0)),
             'origin': product.get('origin', ''),
         })
 
@@ -170,8 +179,6 @@ def checkout_post():
             }), 401
         return redirect(url_for('front_bp.login', next=url_for('front_bp.checkout'), msg='need_account'))
 
-    customer = db.session.get(USER_CUSTOMER, session.get('customer_id'))
-
     cart_list = request.cookies.get('cart_list')
     cart_list = json.loads(cart_list) if cart_list else []
 
@@ -203,12 +210,14 @@ def checkout_post():
         if product is None:
             continue
         ordered_items.append({
-            'product_id': item['id'],
-            'name':  product['name'],
-            'image': product['image'],
+            'product_id': str(item['id']),
+            'name':  product.get('name', ''),
+            'image': product.get('image', ''),
             'unit':  product.get('unit', ''),
-            'price': float(product['price']),
+            'price': float(product.get('price', 0.0)),
             'qty':   int(item['qty']),
+            'quantity': int(item['qty']),
+            'line_total': round(float(product.get('price', 0.0)) * int(item['qty']), 2)
         })
 
     if not ordered_items:
@@ -226,45 +235,30 @@ def checkout_post():
     qr_raw, base64_uri, md5 = build_khqr_data(total, order_number, phone)
 
     # Save Order in Database
-    new_order = Order(
-        order_number=order_number,
-        customer_name=customer_name,
-        phone=phone,
-        email=email,
-        address=address,
-        customer_id=session.get('customer_id'),
-        subtotal=subtotal,
-        delivery=delivery,
-        total=total,
-        payment_status="Pending",
-        status="Pending",
-        md5=md5,
-        qr_data=qr_raw,
-        qr_image=base64_uri
-    )
-    db.session.add(new_order)
-    db.session.flush()
+    inserted_id = Order.insert({
+        'order_number': order_number,
+        'customer_name': customer_name,
+        'phone': phone,
+        'email': email,
+        'address': address,
+        'customer_id': str(session.get('customer_id') or ''),
+        'subtotal': subtotal,
+        'delivery': delivery,
+        'total': total,
+        'payment_status': "Pending",
+        'status': "Pending",
+        'md5': md5,
+        'qr_data': qr_raw,
+        'qr_image': base64_uri,
+        'items': ordered_items
+    })
 
-    # Add Order Items
-    for item in ordered_items:
-        order_item = OrderItem(
-            order_id=new_order.id,
-            product_id=item['product_id'],
-            product_name=item['name'],
-            product_image=item['image'],
-            unit=item['unit'],
-            price=item['price'],
-            quantity=item['qty'],
-            line_total=round(item['price'] * item['qty'], 2)
-        )
-        db.session.add(order_item)
-
-    db.session.commit()
+    new_order = Order.find_by_id(inserted_id)
 
     # Track order in session
     my_orders = session.get('my_order_ids', [])
-    if new_order.id not in my_orders:
-        my_orders.append(new_order.id)
+    if inserted_id not in my_orders:
+        my_orders.append(inserted_id)
     session['my_order_ids'] = my_orders
 
     # Send Telegram notification safely
@@ -273,26 +267,25 @@ def checkout_post():
     if is_ajax:
         return jsonify({
             "success": True,
-            "order_id": new_order.id,
-            "order_number": new_order.order_number,
-            "total": new_order.total,
+            "order_id": new_order['id'],
+            "order_number": new_order.get('order_number'),
+            "total": new_order.get('total'),
             "base64_uri": base64_uri,
             "md5": md5,
             "expires_seconds": 300
         })
 
-    # Non-AJAX fallback: render checkout page with popup modal trigger
     clean_cart = []
     for item in cart_list:
         product = get_product_by_id(item['id'])
         if product:
             clean_cart.append({
-                'id': item['id'],
-                'qty': item['qty'],
-                'image': product['image'],
-                'name': product['name'],
-                'unit': product['unit'],
-                'price': product['price'],
+                'id': str(item['id']),
+                'qty': int(item['qty']),
+                'image': product.get('image', ''),
+                'name': product.get('name', ''),
+                'unit': product.get('unit', ''),
+                'price': float(product.get('price', 0.0)),
             })
 
     return render_template(
@@ -307,47 +300,48 @@ def checkout_post():
     )
 
 
-@front_bp.get('/checkout/check-status/<int:order_id>')
+@front_bp.get('/checkout/check-status/<order_id>')
 def check_order_payment_status(order_id):
-    order = db.session.get(Order, order_id)
+    order = Order.find_by_id(order_id)
     if not order:
         return jsonify({"status": "NOT_FOUND"}), 404
 
-    if order.payment_status.lower() == 'paid':
+    current_pay_status = str(order.get('payment_status', 'Pending')).lower()
+    if current_pay_status == 'paid':
         return jsonify({
             "status": "PAID",
-            "order_id": order.id,
-            "order_number": order.order_number
+            "order_id": order['id'],
+            "order_number": order.get('order_number')
         })
 
     # If transaction has md5 and is still pending, attempt check with Bakong
-    if order.md5:
+    md5 = order.get('md5')
+    if md5:
         try:
             khqr = KHQR(Config.BAKONG_TOKEN)
-            res = khqr.check_payment(order.md5)
+            res = khqr.check_payment(md5)
             status_str = res[0] if isinstance(res, tuple) else str(res)
             status_upper = status_str.upper()
             if status_upper == 'PAID':
-                order.payment_status = "Paid"
-                db.session.commit()
+                Order.update_payment_status(order_id, "Paid")
                 return jsonify({
                     "status": "PAID",
-                    "order_id": order.id,
-                    "order_number": order.order_number
+                    "order_id": order['id'],
+                    "order_number": order.get('order_number')
                 })
             elif status_upper == 'SCANNED':
                 return jsonify({
                     "status": "SCANNED",
-                    "order_id": order.id,
-                    "order_number": order.order_number
+                    "order_id": order['id'],
+                    "order_number": order.get('order_number')
                 })
         except Exception:
             pass
 
     return jsonify({
-        "status": order.payment_status.upper(),
-        "order_id": order.id,
-        "order_number": order.order_number
+        "status": str(order.get('payment_status', 'PENDING')).upper(),
+        "order_id": order['id'],
+        "order_number": order.get('order_number')
     })
 
 
@@ -365,17 +359,26 @@ def my_orders():
     order_ids = session.get('my_order_ids', [])
     customer_id = session.get('customer_id') or session.get('user_id')
 
-    orders = []
-    if order_ids or customer_id:
-        query = Order.query
-        filters = []
-        if order_ids:
-            filters.append(Order.id.in_(order_ids))
-        if customer_id:
-            filters.append(Order.customer_id == customer_id)
-        orders = query.filter(db.or_(*filters)).order_by(Order.created_at.desc()).all()
+    or_filters = []
+    if order_ids:
+        valid_oids = []
+        for oid in order_ids:
+            try:
+                valid_oids.append(ObjectId(str(oid)))
+            except Exception:
+                pass
+        if valid_oids:
+            or_filters.append({"_id": {"$in": valid_oids}})
+    if customer_id:
+        or_filters.append({"customer_id": str(customer_id)})
 
-    highlight_id = request.args.get('order_id', type=int)
+    if or_filters:
+        docs = list(mongo.db.orders.find({"$or": or_filters}).sort("created_at", -1))
+        orders = [Order._wrap(d) for d in docs]
+    else:
+        orders = []
+
+    highlight_id = request.args.get('order_id', '')
 
     return render_template(
         'front/my_orders.html',

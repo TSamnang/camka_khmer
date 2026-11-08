@@ -1,7 +1,7 @@
 from front import front_bp
 from flask import render_template, request, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from extension import db, csrf
+from extension import csrf
 from models.user_customer import USER_CUSTOMER
 
 
@@ -28,11 +28,9 @@ def login_post():
             next_url=next_url
         )
 
-    customer = USER_CUSTOMER.query.filter(
-        db.func.lower(USER_CUSTOMER.customer_email) == email.lower()
-    ).first()
+    customer = USER_CUSTOMER.find_by_email(email)
 
-    if not customer or not check_password_hash(customer.password, password):
+    if not customer or not check_password_hash(customer.get('password', ''), password):
         return render_template(
             'front/login.html',
             error="Invalid email or password. Please try again.",
@@ -40,9 +38,9 @@ def login_post():
         )
 
     # Set authenticated customer session
-    session['customer_id'] = customer.id
-    session['customer_name'] = customer.customer_name
-    session['customer_email'] = customer.customer_email
+    session['customer_id'] = customer['id']
+    session['customer_name'] = customer.get('customer_name', '')
+    session['customer_email'] = customer.get('customer_email', '')
     session['is_customer_login'] = True
 
     if next_url and next_url.startswith('/'):
@@ -78,9 +76,7 @@ def register_post():
         )
 
     # Check if email or phone already registered
-    existing_email = USER_CUSTOMER.query.filter(
-        db.func.lower(USER_CUSTOMER.customer_email) == email.lower()
-    ).first()
+    existing_email = USER_CUSTOMER.find_by_email(email)
     if existing_email:
         return render_template(
             'front/register.html',
@@ -89,9 +85,7 @@ def register_post():
         )
 
     if phone:
-        existing_phone = USER_CUSTOMER.query.filter(
-            USER_CUSTOMER.phoneNumber == phone
-        ).first()
+        existing_phone = USER_CUSTOMER.find_by_phone(phone)
         if existing_phone:
             return render_template(
                 'front/register.html',
@@ -102,23 +96,21 @@ def register_post():
     h_password = generate_password_hash(password)
     full_name = f"{firstname} {lastname}".strip() or firstname
 
-    new_customer = USER_CUSTOMER(
-        customer_name=full_name,
-        customer_email=email,
-        phoneNumber=phone or "012345678",
-        location=address,
-        role="Customer",
-        status="Active",
-        profile="/static/images/default-avatar.png",
-        password=h_password
-    )
-    db.session.add(new_customer)
-    db.session.commit()
+    customer_id = USER_CUSTOMER.insert({
+        'customer_name': full_name,
+        'customer_email': email,
+        'phoneNumber': phone or "012345678",
+        'location': address,
+        'role': "Customer",
+        'status': "Active",
+        'profile': "/static/images/default-avatar.png",
+        'password': h_password
+    })
 
     # Log customer in immediately
-    session['customer_id'] = new_customer.id
-    session['customer_name'] = new_customer.customer_name
-    session['customer_email'] = new_customer.customer_email
+    session['customer_id'] = customer_id
+    session['customer_name'] = full_name
+    session['customer_email'] = email
     session['is_customer_login'] = True
 
     if next_url and next_url.startswith('/'):

@@ -1,18 +1,17 @@
 from api import api_bp
-from extension import db
+from flask import jsonify
 from models.category import Category
 
 
 @api_bp.get("/category")
 def category():
-    categories = Category.query.order_by(Category.id.asc()).all()
-    return [c.to_dict() for c in categories]
+    categories = Category.find_all()
+    return jsonify([Category.to_dict_from_doc(c) for c in categories])
 
 
-@api_bp.get("/category/<int:category_id>")
+@api_bp.get("/category/<category_id>")
 def get_category(category_id):
-    cat = db.session.get(Category, category_id)
+    cat = Category.find_by_id(category_id)
     if not cat:
         return {"error": "Category not found"}, 404
-    return cat.to_dict()
-
+    return jsonify(Category.to_dict_from_doc(cat))

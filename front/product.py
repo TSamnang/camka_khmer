@@ -1,6 +1,5 @@
 from front import front_bp
 from flask import render_template, request
-from extension import db
 from models.product import Product
 from models.category import Category
 from products import get_product_by_id
@@ -10,8 +9,13 @@ from products import get_product_by_id
 def product():
     module = 'product'
     active_category = request.args.get('category', '').strip()
-    categories = Category.query.order_by(Category.id.asc()).all()
-    products = Product.query.order_by(Product.id.asc()).all()
+    categories = Category.find_all()
+
+    if active_category:
+        products = Product.find_by_category(active_category)
+    else:
+        products = Product.find_all()
+
     return render_template(
         'front/product.html',
         products=products,
@@ -21,27 +25,29 @@ def product():
     )
 
 
-@front_bp.get('/product-detail/<int:product_id>')
+@front_bp.get('/product-detail/<product_id>')
 def detail(product_id):
     qty = request.args.get('qty', 1, type=int)
     if qty < 1:
         qty = 1
 
-    product = db.session.get(Product, product_id)
+    product = Product.find_by_id(product_id)
     if not product:
         product = get_product_by_id(product_id)
 
-    cat_name = product.category if hasattr(product, 'category') else (product.get('category', '') if product else '')
-    related_product = Product.query.filter(
-        Product.category == cat_name,
-        Product.id != product_id
-    ).limit(4).all() if cat_name else []
+    cat_name = product.get('category', '') if product else ''
+    if cat_name:
+        related_candidates = Product.find_by_category(cat_name)
+        related_product = [p for p in related_candidates if str(p.get('id', '')) != str(product_id)][:4]
+    else:
+        related_product = []
 
-    all_products = Product.query.all()
+    all_products = Product.find_all()
 
-    return render_template('front/product-detail.html',
-                           products=all_products,
-                           product=product,
-                           related_product=related_product,
-                           qty=qty,
+    return render_template(
+        'front/product-detail.html',
+        products=all_products,
+        product=product,
+        related_product=related_product,
+        qty=qty,
     )

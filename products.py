@@ -1,11 +1,10 @@
 from models.product import Product
-from extension import db
 
 
 def get_product_by_id(product_id):
     """Fetch product from database by ID and return dict or None."""
     try:
-        prod = db.session.get(Product, int(product_id))
+        prod = Product.find_by_id(str(product_id))
         if prod:
             return prod.to_dict()
     except Exception:
@@ -16,10 +15,7 @@ def get_product_by_id(product_id):
 def get_product_by_category(category):
     """Fetch products matching category name or substring from database."""
     try:
-        prods = Product.query.filter(
-            (db.func.lower(Product.category) == str(category).strip().lower()) |
-            (Product.category.ilike(f"%{category}%"))
-        ).all()
+        prods = Product.find_by_category(str(category))
         return [p.to_dict() for p in prods]
     except Exception:
         return []
@@ -28,29 +24,29 @@ def get_product_by_category(category):
 def get_all_products():
     """Fetch all products from database."""
     try:
-        prods = Product.query.order_by(Product.id.asc()).all()
+        prods = Product.find_all()
         return [p.to_dict() for p in prods]
     except Exception:
         return []
 
 
 def cart_increase(cart_list, product_id):
-    product_id = int(product_id)
+    product_id = str(product_id)
     for item in cart_list:
-        if item['id'] == product_id:
-            item['qty'] += 1
+        if str(item.get('id', '')) == product_id:
+            item['qty'] = int(item.get('qty', 1)) + 1
             return cart_list
     cart_list.append({'id': product_id, 'qty': 1})
     return cart_list
 
 
 def cart_decrease(cart_list, product_id):
-    product_id = int(product_id)
+    product_id = str(product_id)
     for item in cart_list:
-        if item['id'] == product_id:
-            item['qty'] -= 1
+        if str(item.get('id', '')) == product_id:
+            item['qty'] = int(item.get('qty', 1)) - 1
             break
-    cart_list = [item for item in cart_list if item['qty'] > 0]
+    cart_list = [item for item in cart_list if int(item.get('qty', 0)) > 0]
     return cart_list
 
 

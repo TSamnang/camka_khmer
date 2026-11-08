@@ -2,8 +2,7 @@ from api import api_bp
 from flask import request, jsonify
 from datetime import datetime
 import random
-from extension import db
-from models.order import Order, OrderItem
+from models.order import Order
 from models.product import Product
 from bakong_khqr import KHQR
 from config import Config
@@ -28,28 +27,23 @@ def get_orders():
     order_number = request.args.get('order_number')
     limit = request.args.get('limit', 50, type=int)
 
-    query = Order.query
-
-    if status:
-        query = query.filter(db.func.lower(Order.status) == status.strip().lower())
-    if payment_status:
-        query = query.filter(db.func.lower(Order.payment_status) == payment_status.strip().lower())
-    if phone:
-        query = query.filter(Order.phone.ilike(f"%{phone.strip()}%"))
-    if order_number:
-        query = query.filter(Order.order_number.ilike(f"%{order_number.strip()}%"))
-
-    orders = query.order_by(Order.created_at.desc()).limit(limit).all()
-    return jsonify([o.to_dict() for o in orders])
+    orders = Order.find_all(
+        status_filter=status,
+        payment_status=payment_status,
+        phone=phone,
+        order_number=order_number,
+        limit=limit
+    )
+    return jsonify([Order.to_dict_from_doc(o) for o in orders])
 
 
-@api_bp.get("/order/<int:order_id>")
+@api_bp.get("/order/<order_id>")
 def get_order(order_id):
     """Retrieve details for a specific order by ID."""
-    order = db.session.get(Order, order_id)
+    order = Order.find_by_id(order_id)
     if not order:
         return jsonify({"error": "Order not found"}), 404
-    return jsonify(order.to_dict())
+    return jsonify(Order.to_dict_from_doc(order))
 
 
 @api_bp.post("/order")
@@ -82,21 +76,24 @@ def create_order():
         if qty < 1:
             qty = 1
 
-        product = db.session.get(Product, p_id) if p_id else None
+        product = Product.find_by_id(p_id) if p_id else None
         if not product:
             continue
 
-        price = float(product.price)
+        price = float(product.get('price', 0.0))
         line_tot = round(price * qty, 2)
         subtotal += line_tot
 
         ordered_items.append({
-            'product_id': product.id,
-            'name': product.name,
-            'image': product.image,
-            'unit': product.unit or '1 unit',
+            'product_id': product['id'],
+            'name': product.get('name', ''),
+            'product_name': product.get('name', ''),
+            'image': product.get('image', ''),
+            'product_image': product.get('image', ''),
+            'unit': product.get('unit', '1 unit'),
             'price': price,
             'quantity': qty,
+            'qty': qty,
             'line_total': line_tot
         })
 
@@ -130,65 +127,52 @@ def create_order():
     except Exception as e:
         print(f"API KHQR generation error: {e}")
 
-    new_order = Order(
-        order_number=order_number,
-        customer_name=customer_name or "API Customer",
-        phone=phone,
-        email=email,
-        address=address,
-        subtotal=subtotal,
-        delivery=delivery,
-        total=total,
-        payment_status="Pending",
-        status="Pending",
-        md5=md5,
-        qr_data=qr_raw,
-        qr_image=base64_uri
-    )
-    db.session.add(new_order)
-    db.session.flush()
+    inserted_id = Order.insert({
+        'order_number': order_number,
+        'customer_name': customer_name or "API Customer",
+        'phone': phone,
+        'email': email,
+        'address': address,
+        'subtotal': subtotal,
+        'delivery': delivery,
+        'total': total,
+        'payment_status': "Pending",
+        'status': "Pending",
+        'md5': md5,
+        'qr_data': qr_raw,
+        'qr_image': base64_uri,
+        'items': ordered_items
+    })
 
-    for item in ordered_items:
-        db.session.add(OrderItem(
-            order_id=new_order.id,
-            product_id=item['product_id'],
-            product_name=item['name'],
-            product_image=item['image'],
-            unit=item['unit'],
-            price=item['price'],
-            quantity=item['quantity'],
-            line_total=item['line_total']
-        ))
-
-    db.session.commit()
+    new_order = Order.find_by_id(inserted_id)
 
     return jsonify({
         "success": True,
         "message": "Order created successfully",
-        "order": new_order.to_dict()
+        "order": Order.to_dict_from_doc(new_order)
     }), 201
 
 
-@api_bp.patch("/order/<int:order_id>/confirm")
+@api_bp.patch("/order/<order_id>/confirm")
 def api_confirm_order(order_id):
     """Confirm a pending order."""
-    order = db.session.get(Order, order_id)
+    order = Order.find_by_id(order_id)
     if not order:
         return jsonify({"error": "Order not found"}), 404
 
-    order.status = "Confirmed"
-    db.session.commit()
+    Order.update_status(order_id, "Confirmed")
+    updated = Order.find_by_id(order_id)
     return jsonify({
         "success": True,
-        "message": f"Order #{order.order_number} confirmed successfully",
-        "order": order.to_dict()
+        "message": f"Order #{updated.get('order_number')} confirmed successfully",
+        "order": Order.to_dict_from_doc(updated)
     })
 
 
-@api_bp.patch("/order/<int:order_id>/status")
+@api_bp.patch("/order/<order_id>/status")
 def api_update_order_status(order_id):
     """Update order status or payment status."""
-    order = db.session.get(Order, order_id)
+    order = Order.find_by_id(order_id)
     if not order:
         return jsonify({"error": "Order not found"}), 404
 
@@ -196,34 +180,36 @@ def api_update_order_status(order_id):
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
+    fields = {}
     if 'status' in data:
         valid_statuses = {"pending", "confirmed", "processing", "shipped", "delivered", "cancelled"}
         req_status = str(data['status']).strip().lower()
         if req_status in valid_statuses:
-            order.status = req_status.title()
+            fields['status'] = req_status.title()
 
     if 'payment_status' in data:
         valid_payments = {"pending", "paid", "expired", "failed"}
         req_pay = str(data['payment_status']).strip().lower()
         if req_pay in valid_payments:
-            order.payment_status = req_pay.title()
+            fields['payment_status'] = req_pay.title()
 
-    db.session.commit()
+    if fields:
+        Order.update_fields(order_id, fields)
+
+    updated = Order.find_by_id(order_id)
     return jsonify({
         "success": True,
         "message": "Status updated successfully",
-        "order": order.to_dict()
+        "order": Order.to_dict_from_doc(updated)
     })
 
 
-@api_bp.delete("/order/<int:order_id>")
+@api_bp.delete("/order/<order_id>")
 def api_delete_order(order_id):
     """Delete an order by ID."""
-    order = db.session.get(Order, order_id)
+    order = Order.find_by_id(order_id)
     if not order:
         return jsonify({"error": "Order not found"}), 404
 
-    db.session.delete(order)
-    db.session.commit()
+    Order.delete(order_id)
     return jsonify({"success": True, "message": f"Order #{order_id} deleted successfully"})
-

@@ -1,9 +1,9 @@
 from admin import admin_bp
 from flask import render_template, request, redirect, url_for, session
-from sqlalchemy import text
-from extension import db, limiter
+from extension import limiter
 from werkzeug.security import check_password_hash
 from functools import wraps
+from models.user_farmer import USER_FARMER
 
 
 def login_required(view):
@@ -14,6 +14,7 @@ def login_required(view):
         return view(*args, **kwargs)
 
     return wrapped
+
 
 @admin_bp.get('/login')
 @limiter.limit("10 per minute")
@@ -26,30 +27,24 @@ def admin_login():
 @admin_bp.post('/login')
 @limiter.limit("5 per minute")
 def admin_do_login():
-    module = 'login'
     form = request.form
-    username = form.get('username').strip()
-    password = form.get('password')
+    username = (form.get('username') or '').strip()
+    password = form.get('password') or ''
 
-    sql = text("SELECT * FROM USER_FARMER WHERE farmer_name = :farmer_name")
-    user = db.session.execute(sql, {"farmer_name": username}).fetchone()
+    user = USER_FARMER.find_by_name(username)
 
-    if user:
-        # check password
-        if check_password_hash(user.password, password):
-            session.clear()
-            session['is_login'] = True
-            session['id'] = user.id
-            session['profile'] = user.profile
-            session['farmer_name'] = user.farmer_name
-            session['farm_name'] = user.farm_name
-            session['email'] = user.email
-            session['phoneNumber'] = user.phoneNumber
-            session['location'] = user.location
-            session['role'] = user.role
-            return redirect(url_for('admin_bp.dashboard_page'))
-        else:
-            return redirect(url_for('admin_bp.admin_login'))
+    if user and check_password_hash(user.get('password', ''), password):
+        session.clear()
+        session['is_login'] = True
+        session['id'] = user.id
+        session['profile'] = user.get('profile', '')
+        session['farmer_name'] = user.get('farmer_name', '')
+        session['farm_name'] = user.get('farm_name', '')
+        session['email'] = user.get('email', '')
+        session['phoneNumber'] = user.get('phoneNumber', '')
+        session['location'] = user.get('location', '')
+        session['role'] = user.get('role', '')
+        return redirect(url_for('admin_bp.dashboard_page'))
     else:
         return redirect(url_for('admin_bp.admin_login'))
 

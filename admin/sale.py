@@ -1,7 +1,7 @@
 from admin import admin_bp
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for
 from admin.auth import login_required
-from extension import db, limiter, get_user_id, csrf
+from extension import limiter, get_user_id, csrf
 from models.order import Order
 
 
@@ -13,16 +13,12 @@ def order_page():
     module = 'order'
     status_filter = request.args.get('status', 'all').strip().lower()
 
-    query = Order.query
-    if status_filter and status_filter != 'all':
-        query = query.filter(db.func.lower(Order.status) == status_filter)
+    orders = Order.find_all(status_filter=status_filter)
 
-    orders = query.order_by(Order.created_at.desc()).all()
-
-    total_count = Order.query.count()
-    pending_count = Order.query.filter(db.func.lower(Order.status) == 'pending').count()
-    confirmed_count = Order.query.filter(db.func.lower(Order.status) == 'confirmed').count()
-    delivered_count = Order.query.filter(db.func.lower(Order.status) == 'delivered').count()
+    total_count = Order.count()
+    pending_count = Order.count(status_filter='pending')
+    confirmed_count = Order.count(status_filter='confirmed')
+    delivered_count = Order.count(status_filter='delivered')
 
     return render_template(
         'admin/sales/order.html',
@@ -36,8 +32,8 @@ def order_page():
     )
 
 
-@admin_bp.get('/order/<int:order_id>')
-@admin_bp.get('/sales/order/<int:order_id>')
+@admin_bp.get('/order/<order_id>')
+@admin_bp.get('/sales/order/<order_id>')
 @admin_bp.get('/sales/order-details')
 @limiter.limit("20 per minute", key_func=get_user_id)
 @login_required
@@ -46,17 +42,17 @@ def order_detail_page(order_id=None):
 
     # Support legacy /sales/order-details?id=...
     if not order_id:
-        order_id = request.args.get('id', type=int)
+        order_id = request.args.get('id', '')
 
     if not order_id:
         # Fallback to the latest order if available
-        first_order = Order.query.order_by(Order.id.desc()).first()
+        first_order = Order.find_latest()
         if first_order:
-            order_id = first_order.id
+            order_id = first_order['id']
         else:
             return redirect(url_for('admin_bp.order_page'))
 
-    order = db.session.get(Order, order_id)
+    order = Order.find_by_id(order_id)
     if not order:
         return redirect(url_for('admin_bp.order_page'))
 
@@ -67,42 +63,33 @@ def order_detail_page(order_id=None):
     )
 
 
-@admin_bp.post('/order/<int:order_id>/confirm')
-@admin_bp.post('/sales/order/<int:order_id>/confirm')
+@admin_bp.post('/order/<order_id>/confirm')
+@admin_bp.post('/sales/order/<order_id>/confirm')
 @csrf.exempt
 @login_required
 def confirm_order(order_id):
     """Admin endpoint to confirm a pending customer order."""
-    order = db.session.get(Order, order_id)
-    if order:
-        order.status = "Confirmed"
-        db.session.commit()
+    Order.update_status(order_id, "Confirmed")
     return redirect(request.referrer or url_for('admin_bp.order_page'))
 
 
-@admin_bp.post('/order/<int:order_id>/status')
-@admin_bp.post('/sales/order/<int:order_id>/status')
+@admin_bp.post('/order/<order_id>/status')
+@admin_bp.post('/sales/order/<order_id>/status')
 @csrf.exempt
 @login_required
 def update_order_status(order_id):
     """Admin endpoint to update order status (Processing, Shipped, Delivered, Cancelled)."""
-    order = db.session.get(Order, order_id)
-    if order:
-        new_status = request.form.get('status', '').strip().title()
-        valid_statuses = {"Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"}
-        if new_status in valid_statuses:
-            order.status = new_status
-            db.session.commit()
+    new_status = request.form.get('status', '').strip().title()
+    valid_statuses = {"Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"}
+    if new_status in valid_statuses:
+        Order.update_status(order_id, new_status)
     return redirect(request.referrer or url_for('admin_bp.order_detail_page', order_id=order_id))
 
 
-@admin_bp.post('/order/<int:order_id>/delete')
-@admin_bp.post('/sales/order/<int:order_id>/delete')
+@admin_bp.post('/order/<order_id>/delete')
+@admin_bp.post('/sales/order/<order_id>/delete')
 @csrf.exempt
 @login_required
 def delete_order(order_id):
-    order = db.session.get(Order, order_id)
-    if order:
-        db.session.delete(order)
-        db.session.commit()
+    Order.delete(order_id)
     return redirect(url_for('admin_bp.order_page'))

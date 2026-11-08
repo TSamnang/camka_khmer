@@ -9,7 +9,6 @@ try:
     env_path = Path(__file__).resolve().parent / '.env'
     load_dotenv(dotenv_path=env_path)
 except Exception:
-    # Graceful standard-library fallback if python-dotenv isn't loaded
     env_path = Path(__file__).resolve().parent / '.env'
     if env_path.is_file():
         with open(env_path, 'r', encoding='utf-8') as f:
@@ -26,12 +25,8 @@ class Config:
     FLASK_ENV = os.getenv("FLASK_ENV", "development")
     FLASK_DEBUG = os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")
 
-    # Database Configuration: SQLite default locally, PostgreSQL/MySQL in production
-    _db_url = os.getenv("DATABASE_URL", "sqlite:///mydb.sqlite3")
-    if _db_url.startswith("postgres://"):
-        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
-    SQLALCHEMY_DATABASE_URI = _db_url
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # MongoDB Atlas Connection URI
+    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/camkakhmer")
 
     # Session & Cookie Security
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=1440)  # 24 hours
@@ -47,17 +42,14 @@ class Config:
     ]
 
     # Telegram Alert Bot (Rate Limit 429, Internal Error 500)
-    # Stored strictly in .env — NO tokens hardcoded here!
     TELEGRAM_DEV_BOT_TOKEN = os.getenv("TELEGRAM_DEV_BOT_TOKEN")
     TELEGRAM_DEV_CHAT_ID = os.getenv("TELEGRAM_DEV_CHAT_ID")
 
     # Telegram Order Notification Bot (Customer Orders)
-    # Stored strictly in .env — NO tokens hardcoded here!
     TELEGRAM_ORDER_BOT_TOKEN = os.getenv("TELEGRAM_ORDER_BOT_TOKEN")
     TELEGRAM_ORDER_CHAT_ID = os.getenv("TELEGRAM_ORDER_CHAT_ID")
 
     # Bakong KHQR Credentials
-    # Stored strictly in .env — NO tokens or credentials hardcoded here!
     BAKONG_TOKEN = os.getenv("BAKONG_TOKEN")
     BAKONG_ACCOUNT_ID = os.getenv("BAKONG_ACCOUNT_ID")
     BAKONG_MERCHANT_NAME = os.getenv("BAKONG_MERCHANT_NAME", "CamkaKhmer")

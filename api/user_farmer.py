@@ -1,11 +1,15 @@
 from api import api_bp
-from sqlalchemy import text
-from extension import db
+from flask import jsonify
+from models.user_farmer import USER_FARMER
+
 
 @api_bp.get('/user/farmer')
 def user_farmer():
-    sql = text("SELECT * FROM USER_FARMER")
-    result = db.session.execute(sql)
-    rows = [dict(row._mapping) for row in result]
-
-    return rows
+    farmers = USER_FARMER.find_all()
+    sanitized = []
+    for f in farmers:
+        d = dict(f)
+        d.pop('password', None)
+        d.pop('_id', None)
+        sanitized.append(d)
+    return jsonify(sanitized)
