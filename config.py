@@ -30,10 +30,6 @@ class Config:
     _db_url = os.getenv("DATABASE_URL", "sqlite:///mydb.sqlite3")
     if _db_url.startswith("postgres://"):
         _db_url = _db_url.replace("postgres://", "postgresql://", 1)
-    # On Vercel (serverless), only /tmp is writable — redirect SQLite there
-    if _db_url.startswith("sqlite:///") and os.getenv("VERCEL"):
-        _db_file = _db_url.replace("sqlite:///", "")
-        _db_url = f"sqlite:////tmp/{_db_file}"
     SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
