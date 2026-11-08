@@ -345,22 +345,6 @@ def check_order_payment_status(order_id):
     })
 
 
-@front_bp.post('/checkout/confirm-paid/<order_id>')
-@csrf.exempt
-def manual_confirm_paid(order_id):
-    """Allows customer or system to confirm payment when Bakong API hits daily quota."""
-    order = Order.find_by_id(order_id)
-    if not order:
-        return jsonify({"error": "Order not found"}), 404
-    Order.update_payment_status(order_id, "Paid")
-    return jsonify({
-        "success": True,
-        "status": "PAID",
-        "order_id": order['id'],
-        "order_number": order.get('order_number')
-    })
-
-
 @front_bp.post('/checkout/clear-cart')
 @csrf.exempt
 def clear_cart_endpoint():

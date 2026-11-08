@@ -324,9 +324,6 @@
         </div>
 
         <div class="d-flex flex-column gap-2 mt-3">
-          <button type="button" id="btnManualConfirm" class="btn btn-sm btn-success fw-bold py-2 shadow-sm" style="border-radius: 50px;">
-            <i class="bi bi-check-circle-fill me-1"></i> I Have Completed Payment
-          </button>
           <button type="button" id="btnCloseModal" class="btn btn-sm btn-link text-muted text-decoration-none">
             Cancel & Return
           </button>
@@ -438,9 +435,9 @@
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(handleCountdown, 1000);
 
-        // Start polling payment status every 4 seconds
+        // Start polling payment status every 2.5 seconds
         if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(pollPaymentStatus, 4000);
+        pollInterval = setInterval(pollPaymentStatus, 2500);
 
         btnPlaceOrder.disabled = false;
         btnPlaceOrder.innerHTML = 'Place Order & Pay with KHQR';
@@ -497,27 +494,6 @@
         setTimeout(() => {
           window.location.href = `{{ url_for('front_bp.my_orders') }}?order_id=${orderId}`;
         }, 1500);
-      }
-
-      const btnManualConfirm = document.getElementById('btnManualConfirm');
-      if (btnManualConfirm) {
-        btnManualConfirm.addEventListener('click', async function () {
-          if (!currentOrderId) return;
-          btnManualConfirm.disabled = true;
-          btnManualConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Confirming Payment...';
-          try {
-            const resp = await fetch(`/checkout/confirm-paid/${currentOrderId}`, { method: 'POST' });
-            const data = await resp.json();
-            if (data.status === 'PAID' || data.success) {
-              onPaymentSuccess(currentOrderId);
-              return;
-            }
-          } catch (err) {
-            console.error('Manual confirm error:', err);
-          }
-          btnManualConfirm.disabled = false;
-          btnManualConfirm.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> I Have Completed Payment';
-        });
       }
 
       if (btnCloseModal) {
