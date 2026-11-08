@@ -5,10 +5,16 @@ from datetime import datetime
 
 class OrderDoc(dict):
     def __getattr__(self, key):
+        if key == 'items':
+            return self.get('items', [])
         return self.get(key)
 
     def __setattr__(self, key, value):
         self[key] = value
+
+    @property
+    def items(self):
+        return self.get('items', [])
 
     def to_dict(self):
         return Order.to_dict_from_doc(self)
