@@ -73,8 +73,12 @@ class Category:
 
     @classmethod
     def find_all(cls):
-        docs = list(cls._col().find().sort("_id", 1))
-        return [cls._wrap(d) for d in docs]
+        try:
+            docs = list(cls._col().find().sort("_id", 1))
+            return [cls._wrap(d) for d in docs]
+        except Exception as e:
+            print(f"Category find_all error: {e}")
+            return []
 
     @classmethod
     def find_by_id(cls, category_id):

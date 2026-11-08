@@ -65,11 +65,15 @@ class Product:
 
     @classmethod
     def find_all(cls, status_filter=None):
-        query = {}
-        if status_filter and status_filter != 'all':
-            query['status'] = {'$regex': f'^{status_filter}$', '$options': 'i'}
-        docs = list(cls._col().find(query).sort("_id", -1))
-        return [cls._wrap(d) for d in docs]
+        try:
+            query = {}
+            if status_filter and status_filter != 'all':
+                query['status'] = {'$regex': f'^{status_filter}$', '$options': 'i'}
+            docs = list(cls._col().find(query).sort("_id", -1))
+            return [cls._wrap(d) for d in docs]
+        except Exception as e:
+            print(f"Product find_all error: {e}")
+            return []
 
     @classmethod
     def find_by_id(cls, product_id):

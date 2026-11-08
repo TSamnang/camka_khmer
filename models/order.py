@@ -47,31 +47,40 @@ class Order:
 
     @classmethod
     def find_all(cls, status_filter=None, payment_status=None, phone=None, order_number=None, limit=200):
-        query = {}
-        if status_filter and status_filter != 'all':
-            query['status'] = {'$regex': f'^{status_filter.strip()}$', '$options': 'i'}
-        if payment_status:
-            query['payment_status'] = {'$regex': f'^{payment_status.strip()}$', '$options': 'i'}
-        if phone:
-            query['phone'] = {'$regex': phone.strip(), '$options': 'i'}
-        if order_number:
-            query['order_number'] = {'$regex': order_number.strip(), '$options': 'i'}
+        try:
+            query = {}
+            if status_filter and status_filter != 'all':
+                query['status'] = {'$regex': f'^{status_filter.strip()}$', '$options': 'i'}
+            if payment_status:
+                query['payment_status'] = {'$regex': f'^{payment_status.strip()}$', '$options': 'i'}
+            if phone:
+                query['phone'] = {'$regex': phone.strip(), '$options': 'i'}
+            if order_number:
+                query['order_number'] = {'$regex': order_number.strip(), '$options': 'i'}
 
-        docs = list(cls._col().find(query).sort("created_at", -1).limit(limit))
-        return [cls._wrap(d) for d in docs]
+            docs = list(cls._col().find(query).sort("created_at", -1).limit(limit))
+            return [cls._wrap(d) for d in docs]
+        except Exception as e:
+            print(f"Order find_all error: {e}")
+            return []
 
     @classmethod
     def find_by_id(cls, order_id):
         try:
             doc = cls._col().find_one({"_id": ObjectId(str(order_id))})
             return cls._wrap(doc)
-        except Exception:
+        except Exception as e:
+            print(f"Order find_by_id error: {e}")
             return None
 
     @classmethod
     def find_latest(cls):
-        doc = cls._col().find_one({}, sort=[("created_at", -1)])
-        return cls._wrap(doc)
+        try:
+            doc = cls._col().find_one({}, sort=[("created_at", -1)])
+            return cls._wrap(doc)
+        except Exception as e:
+            print(f"Order find_latest error: {e}")
+            return None
 
     @classmethod
     def insert(cls, data):

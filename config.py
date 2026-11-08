@@ -27,6 +27,8 @@ class Config:
 
     # MongoDB Atlas Connection URI
     MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/camkakhmer")
+    MONGO_CONNECT_TIMEOUT_MS = 5000
+    MONGO_SERVER_SELECTION_TIMEOUT_MS = 5000
 
     # Session & Cookie Security
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=1440)  # 24 hours

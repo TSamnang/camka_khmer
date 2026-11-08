@@ -253,5 +253,8 @@ def internal_server_error(e):
     return render_template("error/front/500.html"), 500
 
 
+# WSGI handler for Vercel
+handler = app
+
 if __name__ == '__main__':
     app.run()
