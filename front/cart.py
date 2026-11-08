@@ -110,7 +110,7 @@ def cart():
         })
 
     # calculate price
-    DELIVERY_FEE = 2.00
+    DELIVERY_FEE = 0.00
     FREE_DELIVERY = 25.00
 
     subtotal = sum(item['qty'] * item['price'] for item in clean_cart)

@@ -9,7 +9,7 @@ from bakong_khqr import KHQR
 from config import Config
 
 
-DELIVERY_FEE = 2.00
+DELIVERY_FEE = 0.00
 FREE_DELIVERY = 25.00
 
 

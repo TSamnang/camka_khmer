@@ -11,7 +11,7 @@ from bakong_khqr import KHQR
 from config import Config
 
 
-DELIVERY_FEE = 2.00
+DELIVERY_FEE = 0.00
 FREE_DELIVERY = 25.00
 
 
@@ -349,29 +349,6 @@ def check_order_payment_status(order_id):
         "order_id": order.id,
         "order_number": order.order_number
     })
-
-
-@front_bp.post('/checkout/simulate-payment/<int:order_id>')
-@csrf.exempt
-def simulate_order_payment(order_id):
-    """Allows testing payment approval immediately without live bank scan."""
-    order = db.session.get(Order, order_id)
-    if not order:
-        return jsonify({"success": False, "error": "Order not found"}), 404
-
-    order.payment_status = "Paid"
-    db.session.commit()
-
-    resp = make_response(jsonify({
-        "success": True,
-        "status": "PAID",
-        "order_id": order.id,
-        "order_number": order.order_number,
-        "redirect_url": url_for('front_bp.my_orders')
-    }))
-    # Clear the cart cookie upon successful payment
-    resp.set_cookie('cart_list', '', expires=0)
-    return resp
 
 
 @front_bp.post('/checkout/clear-cart')

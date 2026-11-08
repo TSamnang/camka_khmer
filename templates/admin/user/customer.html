@@ -16,6 +16,7 @@
             <th>Contact</th>
             <th>Location</th>
             <th>Role</th>
+            <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -24,19 +25,22 @@
                 <tr>
                     <td>
                       <img src="{{ url_for('static', filename = 'uploads/thumb/' + customer.profile) if customer.profile else '/static/images/bean.jpg' }}" alt="{{ customer.customer_name}}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 1px solid #ccc;"
-                        onerror="this.style.display='none';">
+                        onerror="this.src='/static/images/bean.jpg';">
                     </td>
                     <td>
                       <span class="fw-semibold">{{ customer.customer_name}}</span>
                     </td>
-                    <td>{{ customer.customer_email}}<br><span class="text-muted small">customer.phoneNumber</span></td>
-                    <td>Phnom Penh</td>
+                    <td>{{ customer.customer_email}}<br><span class="text-muted small">{{ customer.phoneNumber }}</span></td>
+                    <td>{{ customer.location }}</td>
                     <td>
                         <span style="text-transform: uppercase">{{ customer.role }}</span>
                     </td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if customer.status == 'Active' else 'bg-secondary' }}">{{ customer.status or 'Active' }}</span>
+                    </td>
                     <td class="action-icons text-nowrap">
-                      <a href="#" title="Update"><i class="bi bi-pencil-square"></i></a>
-                      <a href="#" class="text-danger" title="Remove"><i class="bi bi-trash"></i></a>
+                      <a href="{{ url_for('admin_bp.edit_customer', user_id = customer.id) }}" title="Update"><i class="bi bi-pencil-square"></i></a>
+                      <a href="{{ url_for('admin_bp.confirm_delete_customer', user_id = customer.id) }}" class="text-danger" title="Remove"><i class="bi bi-trash"></i></a>
                     </td>
                 </tr>
             {% endfor %}

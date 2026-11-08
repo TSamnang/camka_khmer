@@ -7,8 +7,14 @@
         {% if module in ['user_farmer'] %}
         <a href="{{ url_for('admin_bp.add_user_farmer') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Farmer</a>
         {% endif %}
+        {% if module in ['user / edit / user', 'user / confirm delete'] %}
+        <a href="{{ url_for('admin_bp.user_farmer_page') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to farmers</a>
+        {% endif %}
         {% if module in ['user_customer'] %}
         <a href="{{ url_for('admin_bp.add_user_customer') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Customer</a>
+        {% endif %}
+        {% if module in ['user / edit / customer', 'user / confirm delete customer', 'user / add / customer'] %}
+        <a href="{{ url_for('admin_bp.user_customer_page') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to customers</a>
         {% endif %}
         {% if module == 'category' %}
         <a href="{{ url_for('admin_bp.add_category') }}" class="btn btn-amber btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Category</a>

@@ -1,0 +1,100 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<!-- Page content -->
+<main class="content-area">
+  <div class="row g-3">
+
+    <div class="col-lg-8">
+      <div class="panel">
+        <div class="panel-header"><h2>Edit Customer Details</h2></div>
+        <div class="panel-body p-4">
+          <form
+            method="POST"
+            action="{{ url_for('admin_bp.do_edit_customer') }}"
+            enctype="multipart/form-data"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+
+            <!-- ── Profile Photo Upload ── -->
+            <div class="mb-4 d-flex flex-column align-items-center">
+              <label class="form-label fw-semibold mb-2 w-100">Profile photo</label>
+              <div class="profile-upload-wrap" id="profileUploadWrap" title="Click to choose a photo">
+                <img id="profilePreview"
+                  src="{{ url_for('static', filename = 'uploads/org/' + user.profile) if user.profile else '/static/images/bean.png' }}"
+                  alt="{{ user.customer_name }}"
+                  class="profile-preview-img"
+                  onerror="this.src='/static/images/bean.png';">
+                <div id="profilePlaceholder" class="profile-placeholder d-none">
+                  <i class="bi bi-camera-fill"></i>
+                  <span>Browse</span>
+                </div>
+              </div>
+              <input type="file" id="profilePhotoInput" name="image" accept="image/*" class="d-none">
+              <p class="text-muted small mt-2 mb-0">Click the circle to upload a new profile picture</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Customer name</label>
+              <input type="text" name="customer_name" class="form-control" value="{{ user.customer_name }}" placeholder="e.g. Sok Dara" required>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Email</label>
+                <input type="email" name="customer_email" class="form-control" value="{{ user.customer_email }}" placeholder="sokdara@example.com" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Phone</label>
+                <input type="text" name="phoneNumber" class="form-control" value="{{ user.phoneNumber }}" placeholder="012 345 678" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Location / Province</label>
+                <input type="text" name="location" class="form-control" value="{{ user.location }}" placeholder="e.g. Phnom Penh" required>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label fw-semibold">Role</label>
+                <select name="role" class="form-select">
+                  <option value="Customer" {{ 'selected' if user.role == 'Customer' }}>Customer</option>
+                </select>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select name="status" class="form-select">
+                  <option value="Active" {{ 'selected' if user.status == 'Active' }}>Active</option>
+                  <option value="Inactive" {{ 'selected' if user.status == 'Inactive' }}>Inactive</option>
+                  <option value="Pending" {{ 'selected' if user.status == 'Pending' }}>Pending</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">New Password</label>
+              <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+            </div>
+
+            <p class="text-muted small mb-4">
+              <i class="bi bi-info-circle me-1"></i>All changes will be saved immediately after clicking <strong>Update customer</strong>.
+            </p>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('admin_bp.user_customer_page') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+              <button type="submit" class="btn btn-farm px-4">Update customer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/admin/js/add_farmer.js"></script>
+{% endblock %}
+

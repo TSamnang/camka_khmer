@@ -176,3 +176,76 @@ def delete_user():
     db.session.delete(user)
     db.session.commit()
     return redirect(url_for('admin_bp.user_farmer_page'))
+
+
+@admin_bp.get('/user/edit-customer/<int:user_id>')
+@limiter.limit("10 per minute", key_func=get_user_id)
+@login_required
+def edit_customer(user_id):
+    module = 'user / edit / customer'
+    sql = text("SELECT * FROM USER_CUSTOMER WHERE id = :user_id")
+    result = db.session.execute(sql, {"user_id": user_id}).fetchone()
+    user = None
+    if result:
+        user = dict(result._mapping)
+    else:
+        return redirect(url_for('admin_bp.user_customer_page'))
+    return render_template('admin/user/edit_customer.html', module=module, user=user)
+
+
+@admin_bp.post('/user/edit-customer')
+@login_required
+def do_edit_customer():
+    form = request.form
+    user = USER_CUSTOMER.query.get(form.get('user_id'))
+    if not user:
+        return redirect(url_for('admin_bp.user_customer_page'))
+
+    file = request.files.get("image")
+    if file and file.filename and allowed(file.filename):
+        filename = save_profile_image(file)
+        if filename:
+            user.profile = filename
+
+    user.customer_name = form.get('customer_name')
+    user.customer_email = form.get('customer_email')
+    user.phoneNumber = form.get('phoneNumber')
+    user.location = form.get('location')
+    if form.get('role'):
+        user.role = form.get('role')
+    if form.get('status'):
+        user.status = form.get('status')
+
+    if form.get('password') is not None and form.get('password').strip() != '':
+        user.password = generate_password_hash(form.get('password'))
+
+    db.session.commit()
+    return redirect(url_for('admin_bp.user_customer_page'))
+
+
+@admin_bp.get('/user/confirm-delete-customer/<int:user_id>')
+@limiter.limit("10 per minute", key_func=get_user_id)
+@login_required
+def confirm_delete_customer(user_id):
+    module = 'user / confirm delete customer'
+    sql = text("SELECT * FROM USER_CUSTOMER WHERE id = :user_id")
+    result = db.session.execute(sql, {"user_id": user_id}).fetchone()
+    user = None
+    if result:
+        user = dict(result._mapping)
+    else:
+        return redirect(url_for('admin_bp.user_customer_page'))
+    return render_template('admin/user/confirm_delete_customer.html', module=module, user=user)
+
+
+@admin_bp.post('/user/delete-customer')
+@login_required
+def delete_customer():
+    form = request.form
+    user_id = form.get('user_id')
+    user = USER_CUSTOMER.query.get(user_id)
+    if not user:
+        return redirect(url_for('admin_bp.user_customer_page'))
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for('admin_bp.user_customer_page'))
