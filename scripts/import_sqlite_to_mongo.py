@@ -35,7 +35,7 @@ if farmers and db.farmers.count_documents({}) == 0:
     db.farmers.insert_many(farmers)
     print(f"Migrated {len(farmers)} farmers.")
 else:
-    print(f"Farmers: {db.farmers.count_documents({})} already in MongoDB.")
+    print(f"Farmers: {db.farmers.count_documents({})} in MongoDB.")
 
 # 2. Migrate customers
 cur.execute("SELECT * FROM user_customer")
@@ -46,7 +46,7 @@ if customers and db.customers.count_documents({}) == 0:
     db.customers.insert_many(customers)
     print(f"Migrated {len(customers)} customers.")
 else:
-    print(f"Customers: {db.customers.count_documents({})} already in MongoDB.")
+    print(f"Customers: {db.customers.count_documents({})} in MongoDB.")
 
 # 3. Migrate categories
 cur.execute("SELECT * FROM category")
@@ -59,7 +59,7 @@ if categories and db.categories.count_documents({}) == 0:
         cat_id_map[old_id] = str(res.inserted_id)
     print(f"Migrated {len(categories)} categories.")
 else:
-    print(f"Categories: {db.categories.count_documents({})} already in MongoDB.")
+    print(f"Categories: {db.categories.count_documents({})} in MongoDB.")
 
 # 4. Migrate products
 cur.execute("SELECT * FROM product")
@@ -75,18 +75,17 @@ if products and db.products.count_documents({}) == 0:
         prod_id_map[old_id] = str(res.inserted_id)
     print(f"Migrated {len(products)} products.")
 else:
-    print(f"Products: {db.products.count_documents({})} already in MongoDB.")
+    print(f"Products: {db.products.count_documents({})} in MongoDB.")
 
-# 5. Migrate orders with embedded order_items
+# 5. Migrate orders (with embedded items) and order_items collection
 cur.execute("SELECT * FROM orders")
 orders = [dict(r) for r in cur.fetchall()]
-if orders and db.orders.count_documents({}) == 0:
-    cur.execute("SELECT * FROM order_items")
-    items = [dict(r) for r in cur.fetchall()]
+cur.execute("SELECT * FROM order_items")
+items = [dict(r) for r in cur.fetchall()]
 
+if orders and db.orders.count_documents({}) == 0:
     for o in orders:
         old_oid = o.pop('id')
-        # Format created_at to datetime
         cat_str = o.get('created_at')
         if cat_str and isinstance(cat_str, str):
             try:
@@ -96,7 +95,6 @@ if orders and db.orders.count_documents({}) == 0:
         else:
             o['created_at'] = datetime.utcnow()
 
-        # Gather order items
         order_items = []
         for i in items:
             if i.get('order_id') == old_oid:
@@ -107,9 +105,31 @@ if orders and db.orders.count_documents({}) == 0:
         o['items'] = order_items
 
         db.orders.insert_one(o)
-    print(f"Migrated {len(orders)} orders with items.")
+    print(f"Migrated {len(orders)} orders with embedded items.")
 else:
-    print(f"Orders: {db.orders.count_documents({})} already in MongoDB.")
+    print(f"Orders: {db.orders.count_documents({})} in MongoDB.")
+
+# Standalone order_items collection
+if items and db.order_items.count_documents({}) == 0:
+    for it in items:
+        it.pop('id', None)
+    db.order_items.insert_many(items)
+    print(f"Migrated {len(items)} order_items.")
+else:
+    print(f"Order Items: {db.order_items.count_documents({})} in MongoDB.")
+
+# 6. Migrate error_log
+cur.execute("SELECT * FROM error_log")
+error_logs = [dict(r) for r in cur.fetchall()]
+if error_logs and db.error_logs.count_documents({}) == 0:
+    for e in error_logs:
+        e.pop('id', None)
+        if 'telegram_sent' in e:
+            e['telegram_sent'] = bool(e['telegram_sent'])
+    db.error_logs.insert_many(error_logs)
+    print(f"Migrated {len(error_logs)} error logs.")
+else:
+    print(f"Error logs: {db.error_logs.count_documents({})} in MongoDB.")
 
 conn.close()
 print("Migration completed successfully!")
