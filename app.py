@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session
 import json
+import os
 from config import Config
 from extension import mongo, limiter, csrf, core
 from front import front_bp
@@ -10,8 +11,8 @@ from models.category import Category
 from models.order import Order
 from models.error_log import ErrorLog
 
-
-app = Flask(__name__)
+static_folder = 'public/static' if os.path.exists(os.path.join(os.path.dirname(__file__), 'public', 'static')) else 'static'
+app = Flask(__name__, static_folder=static_folder)
 app.config.from_object(Config)
 
 mongo.init_app(app)

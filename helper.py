@@ -6,8 +6,9 @@ from werkzeug.utils import secure_filename
 
 # Base directory for uploads
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_ORG_DIR = os.path.join(BASE_DIR, "static", "uploads", "org")
-UPLOAD_THUMB_DIR = os.path.join(BASE_DIR, "static", "uploads", "thumb")
+STATIC_DIR = os.path.join(BASE_DIR, "public", "static") if os.path.exists(os.path.join(BASE_DIR, "public", "static")) else os.path.join(BASE_DIR, "static")
+UPLOAD_ORG_DIR = os.path.join(STATIC_DIR, "uploads", "org")
+UPLOAD_THUMB_DIR = os.path.join(STATIC_DIR, "uploads", "thumb")
 
 # Ensure upload directories exist
 os.makedirs(UPLOAD_ORG_DIR, exist_ok=True)
