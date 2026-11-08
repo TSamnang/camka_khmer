@@ -11,8 +11,7 @@ from models.category import Category
 from models.order import Order
 from models.error_log import ErrorLog
 
-static_folder = 'public/static' if os.path.exists(os.path.join(os.path.dirname(__file__), 'public', 'static')) else 'static'
-app = Flask(__name__, static_folder=static_folder)
+app = Flask(__name__, static_folder='static')
 app.config.from_object(Config)
 
 mongo.init_app(app)
